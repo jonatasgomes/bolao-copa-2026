@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bolão Copa do Mundo 2026 🏆 | Rumo ao Hexa</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🏆%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+
+  <!-- Mensagem de Alerta Flutuante (Sucesso/Erro) -->
+  <div id="toast" class="success-banner" style="position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 350px; box-shadow: var(--shadow-main);"></div>
+
+  <div class="app-container">
+    
+    <!-- ==========================================
+         SEÇÃO DE LOGIN
+         ========================================== -->
+    <section id="login-section" class="login-wrapper">
+      <div class="login-card">
+        <h2>Bolão Copa 2026</h2>
+        <p>Acesse com seu primeiro nome e senha para palpitar</p>
+        
+        <div id="login-error" class="error-message"></div>
+        
+        <form id="login-form">
+          <div class="form-group">
+            <label for="login-username">Usuário</label>
+            <select id="login-username" class="form-input" required>
+              <option value="">Selecione o usuário...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="login-password">Senha</label>
+            <input type="password" id="login-password" class="form-input" placeholder="Sua senha" required autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn-primary">Entrar no Bolão</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SEÇÃO DE ALTERAÇÃO OBRIGATÓRIA DE SENHA
+         ========================================== -->
+    <section id="change-password-section" class="login-wrapper" style="display: none;">
+      <div class="login-card">
+        <h2>Alterar Senha Padrão</h2>
+        <p>Por segurança, você deve definir uma nova senha personalizada no seu primeiro acesso.</p>
+        
+        <div id="change-password-error" class="error-message"></div>
+        
+        <form id="change-password-form">
+          <div class="form-group">
+            <label for="new-password">Nova Senha (mín. 4 caracteres)</label>
+            <input type="password" id="new-password" class="form-input" placeholder="Digite sua nova senha" required autocomplete="new-password">
+          </div>
+          <div class="form-group">
+            <label for="confirm-password">Confirmar Nova Senha</label>
+            <input type="password" id="confirm-password" class="form-input" placeholder="Confirme a nova senha" required autocomplete="new-password">
+          </div>
+          <button type="submit" class="btn-primary">Salvar e Acessar</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         ÁREA PRINCIPAL DA APLICAÇÃO (DASHBOARD)
+         ========================================== -->
+    <div id="main-app" style="display: none;">
+      
+      <!-- Cabeçalho / Header -->
+      <header>
+        <div class="header-banner">
+          <div class="header-logo-section">
+            <h1>BOLÃO DA COPA <span>BRASIL 2026</span></h1>
+            <p>Acompanhe e aposte nos confrontos do mata-mata</p>
+          </div>
+          <div class="header-user-badge">
+            <div id="user-avatar" class="user-avatar">U</div>
+            <div class="user-meta">
+              <div id="user-name" class="name">Nome</div>
+              <div id="user-role" class="role">Jogador</div>
+            </div>
+            <button id="btn-logout" class="btn-logout">Sair</button>
+          </div>
+        </div>
+      </header>
+
+
+
+      <!-- Menu de Navegação por Abas -->
+      <nav class="nav-tabs">
+        <button class="tab-btn active" data-tab="matches-view">
+          ⚽ Jogos & Palpites
+        </button>
+        <button class="tab-btn" data-tab="ranking-view">
+          🏆 Classificação
+        </button>
+        <button class="tab-btn" data-tab="matrix-view">
+          📊 Grade de Apostas
+        </button>
+        <button id="admin-tab-btn" class="tab-btn admin-only" data-tab="admin-view" style="display: none;">
+          ⚙️ Painel Admin
+        </button>
+      </nav>
+
+      <!-- ABA 1: LISTA DE JOGOS & PALPITES -->
+      <main id="matches-view" class="view-panel active">
+        <div class="matches-grid" id="matches-container">
+          <!-- Os cards de jogos serão renderizados dinamicamente pelo JavaScript -->
+        </div>
+      </main>
+
+      <!-- ABA 2: RANKING GERAL -->
+      <section id="ranking-view" class="view-panel">
+        <div class="table-card">
+          <h2>Classificação do Bolão</h2>
+          <table class="ranking-table">
+            <thead>
+              <tr>
+                <th class="rank-col">Posição</th>
+                <th class="player-col">Jogador</th>
+                <th class="points-col">Pontuação Total</th>
+              </tr>
+            </thead>
+            <tbody id="ranking-container">
+              <!-- Linhas do ranking serão injetadas dinamicamente -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ABA 2.5: GRADE GERAL DE APOSTAS -->
+      <section id="matrix-view" class="view-panel">
+        <div class="table-card" style="overflow-x: auto;">
+          <h2>Grade Geral de Apostas</h2>
+          <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">
+            Acompanhe os palpites de todos os competidores. Jogos abertos mostram 🔒 para palpites dos adversários para evitar cópias.
+          </p>
+          <table class="ranking-table" style="min-width: 600px;">
+            <thead>
+              <tr id="matrix-header-row">
+                <!-- Colunas dinâmicas: Jogo, Jogador 1, Jogador 2... -->
+              </tr>
+            </thead>
+            <tbody id="matrix-container">
+              <!-- Linhas dinâmicas -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ABA 3: PAINEL ADMINISTRATIVO -->
+      <section id="admin-view" class="view-panel">
+        <div class="admin-grid">
+          
+          <!-- Lateral: Cadastro de Jogador -->
+          <div class="admin-sidebar">
+            <div class="admin-card">
+              <h3>Cadastrar Novo Jogador</h3>
+              <form id="admin-add-player-form">
+                <div class="form-group">
+                  <label for="new-player-name">Primeiro Nome</label>
+                  <input type="text" id="new-player-name" class="form-input" placeholder="Ex: Carlos" required autocomplete="off">
+                </div>
+                <div class="form-group">
+                  <label for="new-player-password">Senha Padrão Inicial</label>
+                  <input type="text" id="new-player-password" class="form-input" value="Brasil2026" required autocomplete="off">
+                  <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.3rem;">
+                    Será forçada a troca de senha no primeiro login.
+                  </span>
+                </div>
+                <button type="submit" class="btn-primary" style="padding: 0.7rem; font-size: 0.95rem;">Cadastrar Jogador</button>
+              </form>
+            </div>
+
+            <div class="admin-card">
+              <h3>Jogadores Cadastrados</h3>
+              <div class="player-list-scroll" id="admin-players-list">
+                <!-- Jogadores cadastrados serão listados aqui -->
+              </div>
+            </div>
+
+            <div class="admin-card">
+              <h3>Sincronização de Placares</h3>
+              <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.8rem;">
+                Sincronize placares automaticamente com base em um arquivo JSON local ou remoto.
+              </p>
+              
+              <div class="form-group">
+                <label for="sync-url-input" style="font-size: 0.8rem;">URL do JSON de Placares</label>
+                <input type="text" id="sync-url-input" class="form-input" style="font-size: 0.8rem; padding: 0.5rem;" placeholder="http://..." required>
+              </div>
+
+              <div class="form-group" style="margin-top: 0.6rem;">
+                <label for="sync-headers-input" style="font-size: 0.8rem;">Headers de Autenticação (JSON)</label>
+                <textarea id="sync-headers-input" class="form-input" style="font-size: 0.8rem; padding: 0.5rem; height: 55px; font-family: monospace; resize: none;" placeholder='Ex: {"X-Auth-Token": "sua-chave-aqui"}'></textarea>
+              </div>
+              
+              <div style="display: flex; gap: 0.5rem; margin-top: 0.8rem;">
+                <button id="btn-save-sync-config" class="btn-primary" style="padding: 0.5rem 0.8rem; font-size: 0.8rem; flex: 1;">Salvar Configurações</button>
+                <button id="btn-trigger-sync" class="btn-update-score" style="padding: 0.5rem 0.8rem; font-size: 0.8rem; flex: 1.2;">Sincronizar Agora</button>
+              </div>
+
+              <div id="sync-status-display" style="font-size: 0.75rem; margin-top: 0.8rem; padding: 0.5rem; border-radius: 6px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); line-height: 1.4;">
+                Carregando status da sincronização...
+              </div>
+            </div>
+          </div>
+
+          <!-- Conteúdo: Atualização de Resultados -->
+          <div class="table-card">
+            <h2>Atualizar Placares Oficiais</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">
+              Insira os resultados reais para fechar as partidas. O sistema irá recalcular os pontos de todos os apostadores e atualizar as chaves de mata-mata automaticamente!
+            </p>
+            <div class="admin-matches-list" id="admin-matches-container">
+              <!-- Jogos listados para o admin atualizar -->
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Rodapé / Footer -->
+    <footer>
+      <p>Desenvolvido para o Bolão Oficial da Copa do Mundo de 2026 • <span>Rumo ao Hexa! 🇧🇷⭐️⭐️⭐️⭐️⭐️⭐️</span></p>
+    </footer>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
