@@ -67,7 +67,7 @@
        ========================================== -->
   <div id="main-app" style="display: none;">
 
-    <!-- Header Unificado (marca + usuário + abas) — fixo no topo -->
+    <!-- Header Unificado (marca + abas + menu) — fixo no topo -->
     <header class="app-header">
       <div class="app-header-inner">
         <div class="header-top">
@@ -75,29 +75,35 @@
             <span class="brand-emoji">🏆</span>
             <span class="brand-text">Bolão Copa <strong>2026</strong></span>
           </div>
-          <div class="user-actions">
-            <div class="user-chip">
-              <div id="user-avatar" class="user-avatar">U</div>
-              <div class="user-meta">
-                <div id="user-name" class="name">Nome</div>
-                <div id="user-role" class="role">Jogador</div>
-              </div>
-            </div>
-            <button id="btn-change-pwd" class="btn-icon" title="Alterar Senha" aria-label="Alterar Senha">🔑</button>
-            <button id="btn-logout" class="btn-logout">Sair</button>
-          </div>
+          <button id="btn-menu" class="btn-menu" aria-label="Abrir menu" aria-haspopup="true" aria-expanded="false" aria-controls="app-menu">
+            <span class="hamburger" aria-hidden="true"><span></span><span></span><span></span></span>
+          </button>
         </div>
 
-        <!-- Menu de Navegação por Abas (integrado ao header) -->
+        <!-- Toolbar: apenas as 3 abas principais -->
         <nav class="nav-tabs">
           <button class="tab-btn active" data-tab="matches-view">⚽ Jogos</button>
           <button class="tab-btn" data-tab="ranking-view">🏆 Ranking</button>
           <button class="tab-btn" data-tab="matrix-view">📊 Grade</button>
-          <button class="tab-btn" data-tab="regras-view">📖 Regras</button>
-          <button id="admin-tab-btn" class="tab-btn admin-only" data-tab="admin-view" style="display: none;">⚙️ Admin</button>
         </nav>
       </div>
+
+      <!-- Menu hamburguer: usuário, Regras, Admin, troca de senha e Sair -->
+      <div id="app-menu" class="app-menu" role="menu" aria-label="Menu" hidden>
+        <div class="app-menu-user">
+          <div id="user-avatar" class="user-avatar">U</div>
+          <div class="user-meta">
+            <div id="user-name" class="name">Nome</div>
+            <div id="user-role" class="role">Jogador</div>
+          </div>
+        </div>
+        <button class="menu-item" role="menuitem" data-tab="regras-view"><span class="menu-icon" aria-hidden="true">📖</span> Regras</button>
+        <button id="admin-tab-btn" class="menu-item admin-only" role="menuitem" data-tab="admin-view" hidden><span class="menu-icon" aria-hidden="true">⚙️</span> Painel Admin</button>
+        <button id="btn-change-pwd" class="menu-item" role="menuitem"><span class="menu-icon" aria-hidden="true">🔑</span> Trocar senha</button>
+        <button id="btn-logout" class="menu-item menu-item-danger" role="menuitem"><span class="menu-icon" aria-hidden="true">🚪</span> Sair</button>
+      </div>
     </header>
+    <div id="menu-overlay" class="menu-overlay" hidden></div>
 
     <!-- Conteúdo das abas -->
     <main class="app-main">

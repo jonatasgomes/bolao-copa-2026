@@ -134,7 +134,8 @@ function startAutoRefresh() {
   if (autoRefreshInterval) clearInterval(autoRefreshInterval);
   // Atualiza a cada 15 segundos
   autoRefreshInterval = setInterval(() => {
-    const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
+    const activePanel = document.querySelector('.view-panel.active');
+    const activeTab = activePanel ? activePanel.id : null;
     if (activeTab === 'matches-view') {
       loadMatches();
     } else if (activeTab === 'ranking-view') {
@@ -229,6 +230,7 @@ function setupEventListeners() {
 
   // Logout Button
   document.getElementById('btn-logout').addEventListener('click', async () => {
+    closeMenu();
     try {
       await fetch('/api/logout', { method: 'POST' });
       currentUser = null;
@@ -247,6 +249,7 @@ function setupEventListeners() {
   const pwdSuccess = document.getElementById('change-pwd-modal-success');
 
   document.getElementById('btn-change-pwd').addEventListener('click', () => {
+    closeMenu();
     pwdForm.reset();
     pwdError.style.display = 'none';
     pwdSuccess.style.display = 'none';
@@ -307,37 +310,47 @@ function setupEventListeners() {
     }
   });
 
-  // Tabs de Navegação
-  const tabBtns = document.querySelectorAll('.tab-btn');
-  tabBtns.forEach(btn => {
+  // Abas da toolbar (Jogos, Ranking, Grade)
+  document.querySelectorAll('.nav-tabs .tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      tabBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-
-      const targetTab = btn.dataset.tab;
-      document.querySelectorAll('.view-panel').forEach(panel => {
-        panel.classList.remove('active');
-      });
-      document.getElementById(targetTab).classList.add('active');
-
-      // Salvar a aba ativa no localStorage
-      localStorage.setItem('bolao_active_tab', targetTab);
-
-      // Mobile-first: nova aba começa do topo e o botão ativo fica visível na barra rolável
-      window.scrollTo(0, 0);
-      btn.scrollIntoView({ block: 'nearest', inline: 'center' });
-
-      // Carregar os dados específicos de cada aba (Regras é estática, sem fetch)
-      if (targetTab === 'matches-view') {
-        loadMatches(true); // ao abrir a aba, rola até o dia de hoje
-      } else if (targetTab === 'ranking-view') {
-        loadRanking();
-      } else if (targetTab === 'matrix-view') {
-        loadMatrix();
-      } else if (targetTab === 'admin-view') {
-        loadAdminPanel();
-      }
+      activateTab(btn.dataset.tab);
+      closeMenu(); // fecha o menu caso esteja aberto
     });
+  });
+
+  // Itens navegáveis dentro do menu (Regras, Painel Admin)
+  document.querySelectorAll('.app-menu .menu-item[data-tab]').forEach(item => {
+    item.addEventListener('click', () => {
+      activateTab(item.dataset.tab);
+      closeMenu();
+    });
+  });
+
+  // Menu hamburguer (abrir/fechar)
+  const appMenu = document.getElementById('app-menu');
+  const menuOverlay = document.getElementById('menu-overlay');
+  const btnMenu = document.getElementById('btn-menu');
+
+  function openMenu() {
+    appMenu.hidden = false;
+    menuOverlay.hidden = false;
+    btnMenu.classList.add('open');
+    btnMenu.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeMenu() {
+    appMenu.hidden = true;
+    menuOverlay.hidden = true;
+    btnMenu.classList.remove('open');
+    btnMenu.setAttribute('aria-expanded', 'false');
+  }
+
+  btnMenu.addEventListener('click', () => {
+    if (appMenu.hidden) openMenu(); else closeMenu();
+  });
+  menuOverlay.addEventListener('click', closeMenu);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !appMenu.hidden) closeMenu();
   });
 
   // Admin: Cadastrar jogador
@@ -430,33 +443,58 @@ function setupEventListeners() {
   });
 }
 
+// Ativa uma aba/painel — usado tanto pela toolbar quanto pelos itens do menu
+function activateTab(targetTab) {
+  // Marca o item ativo na toolbar e nos itens navegáveis do menu
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === targetTab);
+  });
+  document.querySelectorAll('.menu-item[data-tab]').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === targetTab);
+  });
+
+  // Exibe o painel correspondente
+  document.querySelectorAll('.view-panel').forEach(panel => panel.classList.remove('active'));
+  const panel = document.getElementById(targetTab);
+  if (panel) panel.classList.add('active');
+
+  localStorage.setItem('bolao_active_tab', targetTab);
+
+  // Sobe ao topo ao trocar de aba (a aba Jogos depois rola até o dia de hoje)
+  window.scrollTo(0, 0);
+
+  // Carrega os dados específicos da aba (Regras é estática, sem fetch)
+  if (targetTab === 'matches-view') {
+    loadMatches(true); // ao abrir a aba, rola até o dia de hoje
+  } else if (targetTab === 'ranking-view') {
+    loadRanking();
+  } else if (targetTab === 'matrix-view') {
+    loadMatrix();
+  } else if (targetTab === 'admin-view') {
+    loadAdminPanel();
+  }
+}
+
 // Inicializar interface do Dashboard após login com sucesso
 function initializeDashboard() {
   document.getElementById('user-name').innerText = currentUser.username;
   document.getElementById('user-avatar').innerText = currentUser.username.charAt(0).toUpperCase();
-  
-  if (currentUser.role === 'admin') {
-    document.getElementById('user-role').innerText = 'Administrador';
-    document.getElementById('admin-tab-btn').style.display = 'flex';
-  } else {
-    document.getElementById('user-role').innerText = 'Apostador';
-    document.getElementById('admin-tab-btn').style.display = 'none';
-  }
+
+  const isAdmin = currentUser.role === 'admin';
+  document.getElementById('user-role').innerText = isAdmin ? 'Administrador' : 'Apostador';
+  // Item "Painel Admin" do menu só aparece para administradores
+  document.getElementById('admin-tab-btn').hidden = !isAdmin;
 
   // Ativa a aba salva no localStorage ou a padrão se não houver
+  const validTabs = ['matches-view', 'ranking-view', 'matrix-view', 'regras-view', 'admin-view'];
   const savedTab = localStorage.getItem('bolao_active_tab');
-  let targetTab = savedTab || 'matches-view';
-  
-  if (targetTab === 'admin-view' && currentUser.role !== 'admin') {
+  let targetTab = validTabs.includes(savedTab) ? savedTab : 'matches-view';
+
+  if (targetTab === 'admin-view' && !isAdmin) {
     targetTab = 'matches-view';
   }
 
-  const tabToClick = document.querySelector(`[data-tab="${targetTab}"]`);
-  if (tabToClick) {
-    tabToClick.click();
-  } else {
-    document.querySelector('[data-tab="matches-view"]').click();
-  }
+  activateTab(targetTab);
 }
 
 // ==========================================

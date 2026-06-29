@@ -26,6 +26,11 @@
   padding: 0;
 }
 
+/* Garante que o atributo [hidden] sempre esconda (vence regras display: flex) */
+[hidden] {
+  display: none !important;
+}
+
 /* overflow-x no root (html) — em body quebraria o position: sticky do header */
 html {
   overflow-x: hidden;
@@ -241,94 +246,166 @@ body {
   font-weight: 800;
 }
 
-/* Bloco de usuário (avatar + nome + ações) */
-.user-actions {
+/* Botão hamburguer (abre o menu) */
+.btn-menu {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  width: 44px;
+  height: 40px;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
+  cursor: pointer;
   flex-shrink: 0;
+  transition: all 0.25s ease;
 }
 
-.user-chip {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
+.btn-menu:hover {
+  background: rgba(254, 224, 0, 0.12);
+  border-color: var(--yellow-primary);
 }
 
+.hamburger {
+  position: relative;
+  width: 20px;
+  height: 14px;
+}
+
+.hamburger span {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--yellow-primary);
+  transition: transform 0.25s ease, opacity 0.2s ease, top 0.25s ease;
+}
+
+.hamburger span:nth-child(1) { top: 0; }
+.hamburger span:nth-child(2) { top: 6px; }
+.hamburger span:nth-child(3) { top: 12px; }
+
+.btn-menu.open .hamburger span:nth-child(1) { top: 6px; transform: rotate(45deg); }
+.btn-menu.open .hamburger span:nth-child(2) { opacity: 0; }
+.btn-menu.open .hamburger span:nth-child(3) { top: 6px; transform: rotate(-45deg); }
+
+/* Avatar e dados do usuário (exibidos dentro do menu) */
 .user-avatar {
   background: linear-gradient(135deg, var(--green-light), var(--yellow-primary));
   color: var(--green-dark);
   font-weight: 800;
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   box-shadow: 0 0 10px rgba(0, 156, 59, 0.3);
   flex-shrink: 0;
 }
 
 .user-meta {
-  text-align: right;
-  line-height: 1.15;
+  text-align: left;
+  line-height: 1.2;
 }
 
 .user-meta .name {
   font-weight: 600;
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   color: var(--white);
   white-space: nowrap;
 }
 
 .user-meta .role {
-  font-size: 0.65rem;
+  font-size: 0.66rem;
   color: var(--yellow-primary);
   text-transform: uppercase;
   font-weight: 800;
   letter-spacing: 0.5px;
 }
 
-.btn-icon {
-  background: rgba(255, 255, 255, 0.05);
+/* Painel do menu (dropdown no canto superior direito) */
+.app-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 12px;
+  width: min(264px, calc(100vw - 24px));
+  background: rgba(12, 38, 25, 0.97);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--glass-border);
-  color: var(--yellow-primary);
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  font-size: 1rem;
-  cursor: pointer;
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  padding: 0.5rem;
+  z-index: 200;
+  animation: menuDrop 0.18s ease;
+}
+
+@keyframes menuDrop {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.app-menu-user {
   display: flex;
   align-items: center;
-  justify-content: center;
-  line-height: 1;
-  transition: all 0.25s ease;
-  flex-shrink: 0;
+  gap: 0.7rem;
+  padding: 0.6rem 0.7rem 0.8rem;
+  margin-bottom: 0.4rem;
+  border-bottom: 1px solid var(--glass-border);
 }
 
-.btn-icon:hover {
-  background: rgba(254, 224, 0, 0.12);
-  border-color: var(--yellow-primary);
-}
-
-.btn-logout {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  color: #f87171;
-  padding: 0.45rem 0.85rem;
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  padding: 0.75rem 0.7rem;
+  background: transparent;
+  border: none;
   border-radius: 10px;
+  color: var(--text-light);
   font-family: var(--font-main);
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-weight: 600;
+  text-align: left;
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: all 0.2s ease;
+}
+
+.menu-item:hover {
+  background: var(--glass-hover);
+}
+
+.menu-item.active {
+  background: linear-gradient(135deg, var(--green-primary), var(--green-light));
+  color: var(--white);
+}
+
+.menu-item-danger {
+  color: #f87171;
+}
+
+.menu-item-danger:hover {
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.menu-icon {
+  font-size: 1.05rem;
+  width: 1.5rem;
+  text-align: center;
   flex-shrink: 0;
 }
 
-.btn-logout:hover {
-  background: rgba(239, 68, 68, 0.2);
-  border-color: rgba(239, 68, 68, 0.7);
+/* Backdrop que fecha o menu ao clicar fora */
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 90;
+  animation: fadeIn 0.2s ease;
 }
 
 /* Modal Overlay */
@@ -507,17 +584,6 @@ body {
   color: var(--white);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 4px 10px rgba(0, 156, 59, 0.2);
-}
-
-.tab-btn.admin-only {
-  border: 1px dashed rgba(254, 224, 0, 0.3);
-}
-
-.tab-btn.admin-only.active {
-  background: linear-gradient(135deg, var(--yellow-primary), var(--yellow-dark));
-  color: var(--green-dark);
-  border: 1px solid rgba(254, 224, 0, 0.4);
-  box-shadow: 0 4px 10px rgba(254, 224, 0, 0.2);
 }
 
 /* ==========================================
@@ -1402,24 +1468,18 @@ body {
     font-size: 1.6rem;
   }
 
-  /* Esconde nome/cargo para o header caber em uma só linha no celular */
-  .user-meta {
-    display: none;
-  }
-
   .brand-text {
     font-size: 1rem;
   }
 
-  /* No celular as abas rolam na horizontal (sem quebra de linha) */
+  /* Só 3 abas: dividem a largura igualmente no celular */
   .nav-tabs {
     gap: 0.35rem;
   }
 
   .tab-btn {
-    flex: 0 0 auto;
-    font-size: 0.82rem;
-    padding: 0.55rem 0.85rem;
+    font-size: 0.85rem;
+    padding: 0.6rem 0.4rem;
   }
 
   .matches-grid {
@@ -1513,22 +1573,6 @@ body {
 @media (max-width: 380px) {
   .brand-text {
     font-size: 0.9rem;
-  }
-
-  .user-avatar {
-    width: 34px;
-    height: 34px;
-    font-size: 0.95rem;
-  }
-
-  .btn-icon {
-    width: 34px;
-    height: 34px;
-  }
-
-  .btn-logout {
-    padding: 0.4rem 0.65rem;
-    font-size: 0.8rem;
   }
 }
 
