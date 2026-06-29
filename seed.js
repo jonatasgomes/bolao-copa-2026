@@ -25,9 +25,9 @@ if (!adminExists) {
 const matches = [
   // Oitavas de final / 16 avos de final (Round of 32)
   { id: 73, round: 'Round of 32', match_date: '2026-06-28 15:00', venue: 'SoFi Stadium, Los Angeles', home_team: 'África do Sul', away_team: 'Canadá' },
-  { id: 74, round: 'Round of 32', match_date: '2026-06-29 18:00', venue: 'Gillette Stadium, Boston', home_team: 'Alemanha', away_team: 'Paraguai' },
+  { id: 74, round: 'Round of 32', match_date: '2026-06-29 19:00', venue: 'Gillette Stadium, Boston', home_team: 'Alemanha', away_team: 'Paraguai' },
   { id: 75, round: 'Round of 32', match_date: '2026-06-29 21:00', venue: 'Estadio BBVA, Monterrey', home_team: 'Holanda', away_team: 'Marrocos' },
-  { id: 76, round: 'Round of 32', match_date: '2026-06-29 19:00', venue: 'NRG Stadium, Houston', home_team: 'Brasil', away_team: 'Japão' },
+  { id: 76, round: 'Round of 32', match_date: '2026-06-29 18:00', venue: 'NRG Stadium, Houston', home_team: 'Brasil', away_team: 'Japão' },
   { id: 77, round: 'Round of 32', match_date: '2026-06-29 15:00', venue: 'Levi\'s Stadium, Santa Clara', home_team: 'Espanha', away_team: 'Áustria' },
   { id: 78, round: 'Round of 32', match_date: '2026-06-30 18:00', venue: 'MetLife Stadium, New Jersey', home_team: 'Portugal', away_team: 'Croácia' },
   { id: 79, round: 'Round of 32', match_date: '2026-06-30 21:00', venue: 'Estadio Azteca, Cidade do México', home_team: 'México', away_team: 'Equador' },
