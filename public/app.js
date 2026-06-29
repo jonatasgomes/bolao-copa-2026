@@ -460,19 +460,30 @@ function activateTab(targetTab) {
 
   localStorage.setItem('bolao_active_tab', targetTab);
 
-  // Sobe ao topo ao trocar de aba (a aba Jogos depois rola até o dia de hoje)
-  window.scrollTo(0, 0);
-
   // Carrega os dados específicos da aba (Regras é estática, sem fetch)
   if (targetTab === 'matches-view') {
     loadMatches(true); // ao abrir a aba, rola até o dia de hoje
-  } else if (targetTab === 'ranking-view') {
-    loadRanking();
-  } else if (targetTab === 'matrix-view') {
-    loadMatrix();
-  } else if (targetTab === 'admin-view') {
-    loadAdminPanel();
+  } else {
+    // Demais abas começam do topo. Reset confiável (o header fixo, de outro
+    // modo, cobre o início do conteúdo — principalmente no iOS).
+    scrollToTop();
+    if (targetTab === 'ranking-view') {
+      loadRanking();
+    } else if (targetTab === 'matrix-view') {
+      loadMatrix();
+    } else if (targetTab === 'admin-view') {
+      loadAdminPanel();
+    }
   }
+}
+
+// Reseta a rolagem para o topo de forma confiável.
+// Um único window.scrollTo costuma ser ignorado durante o reflow da troca de
+// aba (esconder um painel alto e mostrar um curto), então reforçamos no frame
+// seguinte — o que também cancela qualquer rolagem suave ainda em andamento.
+function scrollToTop() {
+  window.scrollTo(0, 0);
+  requestAnimationFrame(() => window.scrollTo(0, 0));
 }
 
 // Inicializar interface do Dashboard após login com sucesso
