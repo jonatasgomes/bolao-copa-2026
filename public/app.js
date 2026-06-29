@@ -323,9 +323,13 @@ function setupEventListeners() {
       // Salvar a aba ativa no localStorage
       localStorage.setItem('bolao_active_tab', targetTab);
 
-      // Carregar os dados específicos de cada aba
+      // Mobile-first: nova aba começa do topo e o botão ativo fica visível na barra rolável
+      window.scrollTo(0, 0);
+      btn.scrollIntoView({ block: 'nearest', inline: 'center' });
+
+      // Carregar os dados específicos de cada aba (Regras é estática, sem fetch)
       if (targetTab === 'matches-view') {
-        loadMatches();
+        loadMatches(true); // ao abrir a aba, rola até o dia de hoje
       } else if (targetTab === 'ranking-view') {
         loadRanking();
       } else if (targetTab === 'matrix-view') {
@@ -458,7 +462,7 @@ function initializeDashboard() {
 // ==========================================
 // CARREGAR DADOS DOS JOGOS E APOSTAS
 // ==========================================
-async function loadMatches() {
+async function loadMatches(autoScrollToToday = false) {
   const container = document.getElementById('matches-container');
   try {
     const res = await fetch('/api/matches');
@@ -486,6 +490,8 @@ async function loadMatches() {
         currentDateKey = dateKey;
         const header = document.createElement('div');
         header.className = 'date-group-header';
+        // Chave ISO da data local (YYYY-MM-DD) para localizar o dia de hoje no scroll
+        header.dataset.date = matchDate.toLocaleDateString('en-CA');
         header.innerHTML = `<span class="date-group-icon">📅</span> ${dateKey.charAt(0).toUpperCase() + dateKey.slice(1)}`;
         container.appendChild(header);
       }
@@ -639,9 +645,52 @@ async function loadMatches() {
     // Anexar eventos aos novos inputs/botões inseridos na tela
     attachBetEventListeners();
 
+    // Ao abrir a aba, posiciona a página no dia de hoje (não nos refreshes de 15s)
+    if (autoScrollToToday) {
+      scrollMatchesToToday();
+    }
+
   } catch (err) {
     console.error('Erro ao buscar jogos:', err);
     container.innerHTML = `<div style="color:#f87171; text-align:center; padding:2rem;">Erro ao carregar os jogos do servidor.</div>`;
+  }
+}
+
+// Rolar a página até o dia de hoje (ou o próximo dia com jogos) na aba Jogos
+function scrollMatchesToToday() {
+  const matchesPanel = document.getElementById('matches-view');
+  // Se o usuário já trocou de aba enquanto carregava, não mexe no scroll
+  if (!matchesPanel || !matchesPanel.classList.contains('active')) return;
+
+  const container = document.getElementById('matches-container');
+  const headers = container ? container.querySelectorAll('.date-group-header') : [];
+  if (!headers.length) return;
+
+  const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD no fuso local
+
+  // Primeiro dia com data >= hoje; se todos já passaram, mostra o último dia
+  let target = null;
+  for (const h of headers) {
+    if (h.dataset.date && h.dataset.date >= today) {
+      target = h;
+      break;
+    }
+  }
+  if (!target) target = headers[headers.length - 1];
+
+  const doScroll = () => {
+    // Desconta a altura do header fixo para o dia não ficar escondido atrás dele
+    const appHeader = document.querySelector('.app-header');
+    const offset = (appHeader ? appHeader.offsetHeight : 0) + 8;
+    const y = target.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+  };
+
+  // Espera fontes/layout estabilizarem para medir a posição corretamente
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => requestAnimationFrame(doScroll));
+  } else {
+    requestAnimationFrame(doScroll);
   }
 }
 

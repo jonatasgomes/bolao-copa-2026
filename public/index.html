@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Bolão Copa do Mundo 2026 🏆 | Rumo ao Hexa</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🏆%3C/text%3E%3C/svg%3E">
@@ -12,106 +12,102 @@
   <!-- Mensagem de Alerta Flutuante (Sucesso/Erro) -->
   <div id="toast" class="success-banner" style="position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 350px; box-shadow: var(--shadow-main);"></div>
 
-  <div class="app-container">
-    
-    <!-- ==========================================
-         SEÇÃO DE LOGIN
-         ========================================== -->
-    <section id="login-section" class="login-wrapper">
-      <div class="login-card">
-        <h2>Bolão Copa 2026</h2>
-        <p>Acesse com seu primeiro nome e senha para palpitar</p>
-        
-        <div id="login-error" class="error-message"></div>
-        
-        <form id="login-form">
-          <div class="form-group">
-            <label for="login-username">Usuário</label>
-            <select id="login-username" class="form-input" required>
-              <option value="">Selecione o usuário...</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="login-password">Senha</label>
-            <input type="password" id="login-password" class="form-input" placeholder="Sua senha" required autocomplete="current-password">
-          </div>
-          <button type="submit" class="btn-primary">Entrar no Bolão</button>
-        </form>
-      </div>
-    </section>
+  <!-- ==========================================
+       SEÇÃO DE LOGIN
+       ========================================== -->
+  <section id="login-section" class="login-wrapper">
+    <div class="login-card">
+      <h2>Bolão Copa 2026</h2>
+      <p>Acesse com seu primeiro nome e senha para palpitar</p>
 
-    <!-- ==========================================
-         SEÇÃO DE ALTERAÇÃO OBRIGATÓRIA DE SENHA
-         ========================================== -->
-    <section id="change-password-section" class="login-wrapper" style="display: none;">
-      <div class="login-card">
-        <h2>Alterar Senha Padrão</h2>
-        <p>Por segurança, você deve definir uma nova senha personalizada no seu primeiro acesso.</p>
-        
-        <div id="change-password-error" class="error-message"></div>
-        
-        <form id="change-password-form">
-          <div class="form-group">
-            <label for="new-password">Nova Senha (mín. 4 caracteres)</label>
-            <input type="password" id="new-password" class="form-input" placeholder="Digite sua nova senha" required autocomplete="new-password">
-          </div>
-          <div class="form-group">
-            <label for="confirm-password">Confirmar Nova Senha</label>
-            <input type="password" id="confirm-password" class="form-input" placeholder="Confirme a nova senha" required autocomplete="new-password">
-          </div>
-          <button type="submit" class="btn-primary">Salvar e Acessar</button>
-        </form>
-      </div>
-    </section>
+      <div id="login-error" class="error-message"></div>
 
-    <!-- ==========================================
-         ÁREA PRINCIPAL DA APLICAÇÃO (DASHBOARD)
-         ========================================== -->
-    <div id="main-app" style="display: none;">
-      
-      <!-- Cabeçalho / Header -->
-      <header>
-        <div class="header-banner">
-          <div class="header-logo-section">
-            <h1>BOLÃO DA COPA <span>BRASIL 2026</span></h1>
-            <p>Acompanhe e aposte nos confrontos do mata-mata</p>
+      <form id="login-form">
+        <div class="form-group">
+          <label for="login-username">Usuário</label>
+          <select id="login-username" class="form-input" required>
+            <option value="">Selecione o usuário...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="login-password">Senha</label>
+          <input type="password" id="login-password" class="form-input" placeholder="Sua senha" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn-primary">Entrar no Bolão</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       SEÇÃO DE ALTERAÇÃO OBRIGATÓRIA DE SENHA
+       ========================================== -->
+  <section id="change-password-section" class="login-wrapper" style="display: none;">
+    <div class="login-card">
+      <h2>Alterar Senha Padrão</h2>
+      <p>Por segurança, você deve definir uma nova senha personalizada no seu primeiro acesso.</p>
+
+      <div id="change-password-error" class="error-message"></div>
+
+      <form id="change-password-form">
+        <div class="form-group">
+          <label for="new-password">Nova Senha (mín. 4 caracteres)</label>
+          <input type="password" id="new-password" class="form-input" placeholder="Digite sua nova senha" required autocomplete="new-password">
+        </div>
+        <div class="form-group">
+          <label for="confirm-password">Confirmar Nova Senha</label>
+          <input type="password" id="confirm-password" class="form-input" placeholder="Confirme a nova senha" required autocomplete="new-password">
+        </div>
+        <button type="submit" class="btn-primary">Salvar e Acessar</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       ÁREA PRINCIPAL DA APLICAÇÃO (DASHBOARD)
+       ========================================== -->
+  <div id="main-app" style="display: none;">
+
+    <!-- Header Unificado (marca + usuário + abas) — fixo no topo -->
+    <header class="app-header">
+      <div class="app-header-inner">
+        <div class="header-top">
+          <div class="brand">
+            <span class="brand-emoji">🏆</span>
+            <span class="brand-text">Bolão Copa <strong>2026</strong></span>
           </div>
-          <div class="header-user-badge">
-            <div id="user-avatar" class="user-avatar">U</div>
-            <div class="user-meta">
-              <div id="user-name" class="name">Nome</div>
-              <div id="user-role" class="role">Jogador</div>
+          <div class="user-actions">
+            <div class="user-chip">
+              <div id="user-avatar" class="user-avatar">U</div>
+              <div class="user-meta">
+                <div id="user-name" class="name">Nome</div>
+                <div id="user-role" class="role">Jogador</div>
+              </div>
             </div>
-            <button id="btn-change-pwd" class="btn-change-pwd" title="Alterar Senha">🔑</button>
+            <button id="btn-change-pwd" class="btn-icon" title="Alterar Senha" aria-label="Alterar Senha">🔑</button>
             <button id="btn-logout" class="btn-logout">Sair</button>
           </div>
         </div>
-      </header>
 
+        <!-- Menu de Navegação por Abas (integrado ao header) -->
+        <nav class="nav-tabs">
+          <button class="tab-btn active" data-tab="matches-view">⚽ Jogos</button>
+          <button class="tab-btn" data-tab="ranking-view">🏆 Ranking</button>
+          <button class="tab-btn" data-tab="matrix-view">📊 Grade</button>
+          <button class="tab-btn" data-tab="regras-view">📖 Regras</button>
+          <button id="admin-tab-btn" class="tab-btn admin-only" data-tab="admin-view" style="display: none;">⚙️ Admin</button>
+        </nav>
+      </div>
+    </header>
 
-
-      <!-- Menu de Navegação por Abas -->
-      <nav class="nav-tabs">
-        <button class="tab-btn active" data-tab="matches-view">
-          ⚽ Jogos & Palpites
-        </button>
-        <button class="tab-btn" data-tab="ranking-view">
-          🏆 Classificação
-        </button>
-        <button class="tab-btn" data-tab="matrix-view">
-          📊 Grade de Apostas
-        </button>
-        <button id="admin-tab-btn" class="tab-btn admin-only" data-tab="admin-view" style="display: none;">
-          ⚙️ Painel Admin
-        </button>
-      </nav>
+    <!-- Conteúdo das abas -->
+    <main class="app-main">
 
       <!-- ABA 1: LISTA DE JOGOS & PALPITES -->
-      <main id="matches-view" class="view-panel active">
+      <section id="matches-view" class="view-panel active">
         <div class="matches-grid" id="matches-container">
           <!-- Os cards de jogos serão renderizados dinamicamente pelo JavaScript -->
         </div>
-      </main>
+      </section>
 
       <!-- ABA 2: RANKING GERAL -->
       <section id="ranking-view" class="view-panel">
@@ -152,10 +148,110 @@
         </div>
       </section>
 
+      <!-- ABA: REGRAS DO BOLÃO -->
+      <section id="regras-view" class="view-panel">
+        <div class="table-card">
+          <h2>📖 Regras do Bolão</h2>
+
+          <div class="rules-block">
+            <h3>🎯 Como funciona</h3>
+            <p>
+              Você é um dos apostadores do bolão do <strong>mata-mata da Copa 2026</strong>. Para cada um dos
+              <strong>32 jogos</strong> (do Jogo&nbsp;73 ao Jogo&nbsp;104), registre o placar que você acha que vai
+              acontecer. Quanto mais perto do resultado real, mais pontos você ganha. No fim, <strong>vence o bolão
+              quem somar mais pontos</strong>.
+            </p>
+          </div>
+
+          <div class="rules-block">
+            <h3>🏅 Pontuação</h3>
+            <p style="margin-bottom: 0.9rem;">Cada jogo vale até <strong>10 pontos</strong>, de acordo com a sua precisão:</p>
+            <div class="rules-points">
+              <div class="rule-point pts-10">
+                <span class="pts">10</span>
+                <div class="pts-label">
+                  <strong>Placar exato</strong>
+                  <p>Você cravou o placar. Se for empate, precisa também acertar quem avança nos pênaltis.</p>
+                </div>
+              </div>
+              <div class="rule-point pts-7">
+                <span class="pts">7</span>
+                <div class="pts-label">
+                  <strong>Quase lá</strong>
+                  <p>Acertou o vencedor <em>e</em> o saldo de gols (sem o placar exato — ex.: você 2×1, deu 3×2);
+                     ou cravou o placar do empate mas errou os pênaltis; ou previu empate com placar diferente
+                     (ex.: você 1×1, deu 2×2) e acertou quem avança.</p>
+                </div>
+              </div>
+              <div class="rule-point pts-5">
+                <span class="pts">5</span>
+                <div class="pts-label">
+                  <strong>No caminho certo</strong>
+                  <p>Acertou apenas o vencedor, com saldo de gols diferente; ou previu empate mas errou o placar
+                     <em>e</em> os pênaltis.</p>
+                </div>
+              </div>
+              <div class="rule-point pts-0">
+                <span class="pts">0</span>
+                <div class="pts-label">
+                  <strong>Passou longe</strong>
+                  <p>Não acertou o resultado — nem o vencedor, nem que seria empate.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="rules-block">
+            <h3>⚖️ Empates e pênaltis</h3>
+            <p>
+              No mata-mata <strong>todo jogo tem um classificado</strong>. Se o seu palpite for de empate no tempo
+              normal, aparece a opção de escolher <strong>quem avança nos pênaltis</strong> — e essa escolha conta na
+              sua pontuação.
+            </p>
+          </div>
+
+          <div class="rules-block">
+            <h3>⏰ Prazo para palpitar</h3>
+            <p>
+              Você pode criar, alterar ou apagar um palpite <strong>até o apito inicial do jogo</strong>. Assim que a
+              partida começa, o palpite <strong>trava automaticamente</strong> e não pode mais ser mudado. Para apagar
+              um palpite, deixe os dois campos de placar vazios e salve.
+            </p>
+          </div>
+
+          <div class="rules-block">
+            <h3>🔒 Sigilo dos palpites</h3>
+            <p>
+              Enquanto um jogo está aberto, os palpites dos seus adversários ficam <strong>ocultos com um 🔒</strong>
+              na aba <strong>Grade</strong> — ninguém copia ninguém. No instante em que a bola rola, todos os palpites
+              daquele jogo são revelados.
+            </p>
+          </div>
+
+          <div class="rules-block">
+            <h3>🏆 Avanço no mata-mata</h3>
+            <p>
+              Conforme os placares oficiais são lançados, o time vencedor <strong>avança sozinho</strong> para o
+              próximo confronto da chave. Os jogos seguintes (quartas, semis, final) vão sendo preenchidos
+              automaticamente.
+            </p>
+          </div>
+
+          <div class="rules-block rules-tip">
+            <h3>💡 Dicas rápidas</h3>
+            <ul>
+              <li>Palpite com antecedência: o jogo trava no apito inicial.</li>
+              <li>Empatou? Escolha quem avança nos pênaltis, senão o palpite não salva.</li>
+              <li>Use a aba <strong>Ranking</strong> para ver sua posição e a <strong>Grade</strong> para comparar com os adversários.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <!-- ABA 3: PAINEL ADMINISTRATIVO -->
       <section id="admin-view" class="view-panel">
         <div class="admin-grid">
-          
+
           <!-- Lateral: Cadastro de Jogador -->
           <div class="admin-sidebar">
             <div class="admin-card">
@@ -188,7 +284,7 @@
               <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.8rem;">
                 Sincronize placares automaticamente com base em um arquivo JSON local ou remoto.
               </p>
-              
+
               <div class="form-group">
                 <label for="sync-url-input" style="font-size: 0.8rem;">URL do JSON de Placares</label>
                 <input type="text" id="sync-url-input" class="form-input" style="font-size: 0.8rem; padding: 0.5rem;" placeholder="http://..." required>
@@ -198,7 +294,7 @@
                 <label for="sync-headers-input" style="font-size: 0.8rem;">Headers de Autenticação (JSON)</label>
                 <textarea id="sync-headers-input" class="form-input" style="font-size: 0.8rem; padding: 0.5rem; height: 55px; font-family: monospace; resize: none;" placeholder='Ex: {"X-Auth-Token": "sua-chave-aqui"}'></textarea>
               </div>
-              
+
               <div style="display: flex; gap: 0.5rem; margin-top: 0.8rem;">
                 <button id="btn-save-sync-config" class="btn-primary" style="padding: 0.5rem 0.8rem; font-size: 0.8rem; flex: 1;">Salvar Configurações</button>
                 <button id="btn-trigger-sync" class="btn-update-score" style="padding: 0.5rem 0.8rem; font-size: 0.8rem; flex: 1.2;">Sincronizar Agora</button>
@@ -223,40 +319,34 @@
 
         </div>
       </section>
+    </main>
 
-      <!-- Modal de Alteração de Senha -->
-      <div id="change-pwd-modal" class="modal-overlay" style="display:none;">
-        <div class="modal-card">
-          <div class="modal-header">
-            <h3>🔑 Alterar Senha</h3>
-            <button id="close-pwd-modal" class="modal-close">&times;</button>
-          </div>
-          <div id="change-pwd-modal-error" class="error-message"></div>
-          <div id="change-pwd-modal-success" class="success-message" style="display:none;"></div>
-          <form id="change-pwd-modal-form">
-            <div class="form-group">
-              <label for="current-password-modal">Senha Atual</label>
-              <input type="password" id="current-password-modal" class="form-input" placeholder="Digite sua senha atual" required autocomplete="current-password">
-            </div>
-            <div class="form-group">
-              <label for="new-password-modal">Nova Senha (mín. 4 caracteres)</label>
-              <input type="password" id="new-password-modal" class="form-input" placeholder="Digite a nova senha" required autocomplete="new-password">
-            </div>
-            <div class="form-group">
-              <label for="confirm-password-modal">Confirmar Nova Senha</label>
-              <input type="password" id="confirm-password-modal" class="form-input" placeholder="Confirme a nova senha" required autocomplete="new-password">
-            </div>
-            <button type="submit" class="btn-primary">Salvar Nova Senha</button>
-          </form>
+    <!-- Modal de Alteração de Senha -->
+    <div id="change-pwd-modal" class="modal-overlay" style="display:none;">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>🔑 Alterar Senha</h3>
+          <button id="close-pwd-modal" class="modal-close">&times;</button>
         </div>
+        <div id="change-pwd-modal-error" class="error-message"></div>
+        <div id="change-pwd-modal-success" class="success-message" style="display:none;"></div>
+        <form id="change-pwd-modal-form">
+          <div class="form-group">
+            <label for="current-password-modal">Senha Atual</label>
+            <input type="password" id="current-password-modal" class="form-input" placeholder="Digite sua senha atual" required autocomplete="current-password">
+          </div>
+          <div class="form-group">
+            <label for="new-password-modal">Nova Senha (mín. 4 caracteres)</label>
+            <input type="password" id="new-password-modal" class="form-input" placeholder="Digite a nova senha" required autocomplete="new-password">
+          </div>
+          <div class="form-group">
+            <label for="confirm-password-modal">Confirmar Nova Senha</label>
+            <input type="password" id="confirm-password-modal" class="form-input" placeholder="Confirme a nova senha" required autocomplete="new-password">
+          </div>
+          <button type="submit" class="btn-primary">Salvar Nova Senha</button>
+        </form>
       </div>
-
     </div>
-
-    <!-- Rodapé / Footer -->
-    <footer>
-      <p>Desenvolvido para o Bolão Oficial da Copa do Mundo de 2026 • <span>Rumo ao Hexa! 🇧🇷⭐️⭐️⭐️⭐️⭐️⭐️</span></p>
-    </footer>
 
   </div>
 
