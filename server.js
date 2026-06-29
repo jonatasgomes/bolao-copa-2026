@@ -566,7 +566,7 @@ function updateMatchScore(matchId, homeScore, awayScore, penaltyWinner) {
 }
 
 // Configurações globais de Sincronização
-let syncUrl = 'http://localhost:3000/api/public/mock-scores';
+let syncUrl = `http://localhost:${PORT}/api/public/mock-scores`;
 let syncHeaders = {};
 let lastSyncStatus = { time: null, success: false, message: 'Nenhuma sincronização realizada ainda.' };
 
