@@ -1053,6 +1053,7 @@ async function loadMatrix() {
           <span style="color:var(--yellow-primary); font-size:0.75rem; font-weight:800; background: rgba(254,224,0,0.1); padding:0.15rem 0.35rem; border-radius:4px; margin-right:0.3rem;">J${match.id}</span> 
           ${homeFlag} ${match.home_team} x ${match.away_team} ${awayFlag}
           ${scoreText}
+          <div style="font-size:0.7rem; color:var(--text-muted); font-weight:400; margin-top:0.2rem;">${formatMatchDate(match.match_date)}</div>
         </td>
       `;
 

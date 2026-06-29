@@ -388,6 +388,7 @@ app.get('/api/bets/matrix', requireAuth, requirePasswordChangeCheck, (req, res) 
         round: match.round,
         home_team: match.home_team,
         away_team: match.away_team,
+        match_date: match.match_date,
         closed,
         home_score: match.home_score,
         away_score: match.away_score,
