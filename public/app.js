@@ -232,6 +232,7 @@ function setupEventListeners() {
     try {
       await fetch('/api/logout', { method: 'POST' });
       currentUser = null;
+      document.getElementById('login-password').value = '';
       showSection('login');
       showToast('Sessão encerrada.');
     } catch (err) {
