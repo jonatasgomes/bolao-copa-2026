@@ -638,8 +638,40 @@ function attachBetEventListeners() {
       const homeScore = document.querySelector(`.home-input[data-match-id="${matchId}"]`).value;
       const awayScore = document.querySelector(`.away-input[data-match-id="${matchId}"]`).value;
 
-      if (homeScore === '' || awayScore === '') {
-        showToast('Por favor, preencha os dois placares antes de salvar!', true);
+      const isHomeEmpty = homeScore.trim() === '';
+      const isAwayEmpty = awayScore.trim() === '';
+
+      if (isHomeEmpty && isAwayEmpty) {
+        // Remover aposta
+        try {
+          const res = await fetch('/api/bets', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              match_id: parseInt(matchId, 10),
+              home_score: '',
+              away_score: '',
+              penalty_winner: null
+            })
+          });
+
+          const data = await res.json();
+          if (!res.ok) {
+            showToast(data.error || 'Erro ao remover palpite.', true);
+            return;
+          }
+
+          showToast('Palpite removido com sucesso!');
+          delete localDrafts[matchId]; // Limpar rascunho salvo
+          loadMatches(); // Recarregar jogos
+        } catch (err) {
+          showToast('Erro ao se conectar ao servidor.', true);
+        }
+        return;
+      }
+
+      if (isHomeEmpty || isAwayEmpty) {
+        showToast('Para preencher o palpite, ambos os placares devem ser informados. Para remover o palpite, deixe ambos vazios.', true);
         return;
       }
 

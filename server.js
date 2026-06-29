@@ -216,8 +216,39 @@ app.post('/api/bets', requireAuth, requirePasswordChangeCheck, (req, res) => {
 
   const { match_id, home_score, away_score, penalty_winner } = req.body;
 
-  if (match_id === undefined || home_score === undefined || away_score === undefined) {
+  if (match_id === undefined) {
     return res.status(400).json({ error: 'Dados incompletos para a aposta.' });
+  }
+
+  // Verificar se ambos estão vazios
+  const isHomeEmpty = home_score === null || home_score === undefined || String(home_score).trim() === '';
+  const isAwayEmpty = away_score === null || away_score === undefined || String(away_score).trim() === '';
+
+  if (isHomeEmpty && isAwayEmpty) {
+    try {
+      const stmtMatch = db.prepare('SELECT * FROM matches WHERE id = ?');
+      const match = stmtMatch.get(match_id);
+
+      if (!match) {
+        return res.status(404).json({ error: 'Jogo não encontrado.' });
+      }
+
+      if (match.status === 'finished' || isMatchClosed(match.match_date)) {
+        return res.status(400).json({ error: 'As apostas para este jogo já foram encerradas!' });
+      }
+
+      const stmtDelete = db.prepare('DELETE FROM bets WHERE user_id = ? AND match_id = ?');
+      stmtDelete.run(req.session.userId, match_id);
+
+      return res.json({ message: 'Palpite removido com sucesso!', deleted: true });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Erro ao remover o palpite.' });
+    }
+  }
+
+  if (isHomeEmpty || isAwayEmpty) {
+    return res.status(400).json({ error: 'Para preencher o palpite, ambos os placares devem ser informados. Para remover o palpite, deixe ambos vazios.' });
   }
 
   const hScore = parseInt(home_score, 10);
@@ -237,7 +268,6 @@ app.post('/api/bets', requireAuth, requirePasswordChangeCheck, (req, res) => {
   }
 
   try {
-    // Verificar se o jogo existe e se já começou ou terminou
     const stmtMatch = db.prepare('SELECT * FROM matches WHERE id = ?');
     const match = stmtMatch.get(match_id);
 
