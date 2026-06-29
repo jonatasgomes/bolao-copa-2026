@@ -614,7 +614,10 @@ function updateMatchScore(matchId, homeScore, awayScore, penaltyWinner) {
 }
 
 // Configurações globais de Sincronização
-let syncUrl = `http://localhost:${PORT}/api/public/mock-scores`;
+// IMPORTANTE: começa VAZIO. A sincronização automática só roda quando o admin
+// configura uma URL de placares REAL. Não apontar para /api/public/mock-scores
+// em produção — o mock fabrica placares e marcaria jogos como encerrados sozinho.
+let syncUrl = '';
 let syncHeaders = {};
 let lastSyncStatus = { time: null, success: false, message: 'Nenhuma sincronização realizada ainda.' };
 
@@ -959,6 +962,16 @@ function parseHtmlScrape(html, localMatches) {
 
 // Executa o processo de sincronização de placares (Suporta JSON API e HTML WebScraping)
 async function performSync() {
+  // Sem URL configurada não há o que sincronizar (evita fetch('') e o mock).
+  if (!syncUrl || !syncUrl.trim()) {
+    lastSyncStatus = {
+      time: new Date().toISOString(),
+      success: false,
+      message: 'Sincronização automática desativada: configure uma URL de placares real.'
+    };
+    return;
+  }
+
   try {
     console.log(`[Sync] Buscando dados de placares de: ${syncUrl}`);
     const response = await fetch(syncUrl, { headers: syncHeaders });
@@ -1070,7 +1083,8 @@ app.get('/api/public/mock-scores', (req, res) => {
     const now = new Date();
 
     const mockMatches = matches.map(match => {
-      const kickoff = new Date(match.match_date);
+      // match_date é ET (UTC-4); sem o offset o servidor (UTC) erra em 4h
+      const kickoff = new Date(match.match_date.replace(' ', 'T') + ':00-04:00');
       // Considera jogo encerrado 2 horas após o início
       const isFinished = now.getTime() > kickoff.getTime() + 2 * 60 * 60 * 1000;
 
@@ -1148,7 +1162,8 @@ setInterval(async () => {
     const now = new Date();
 
     const hasActiveMatch = matches.some(m => {
-      const kickoff = new Date(m.match_date);
+      // match_date é ET (UTC-4); aplica o offset para não disparar 4h antes
+      const kickoff = new Date(m.match_date.replace(' ', 'T') + ':00-04:00');
       // Considera ativo de 15 minutos antes do início até 3.5 horas depois (incluindo possíveis pênaltis/prorrogações)
       const startWindow = new Date(kickoff.getTime() - 15 * 60 * 1000);
       const endWindow = new Date(kickoff.getTime() + 210 * 60 * 1000);
