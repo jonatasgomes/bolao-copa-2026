@@ -499,6 +499,27 @@ header {
   gap: 1.5rem;
 }
 
+.date-group-header {
+  grid-column: 1 / -1;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--yellow-primary);
+  padding: 0.8rem 1.2rem;
+  background: linear-gradient(90deg, rgba(254, 224, 0, 0.08) 0%, transparent 100%);
+  border-left: 3px solid var(--yellow-primary);
+  border-radius: 0 12px 12px 0;
+  margin-top: 0.5rem;
+  text-transform: capitalize;
+}
+
+.date-group-header:first-child {
+  margin-top: 0;
+}
+
+.date-group-icon {
+  margin-right: 0.3rem;
+}
+
 @media (min-width: 768px) {
   .matches-grid {
     grid-template-columns: repeat(2, 1fr);

@@ -471,7 +471,25 @@ async function loadMatches() {
       return;
     }
 
+    // Agrupar jogos por data local do usuário
+    let currentDateKey = null;
+
     matches.forEach(match => {
+      // Determinar a data local do jogo
+      const matchDate = new Date(match.match_date.replace(' ', 'T') + ':00-04:00');
+      const dateKey = matchDate.toLocaleDateString('pt-BR', { 
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
+      });
+
+      // Inserir cabeçalho de data se mudou o dia
+      if (dateKey !== currentDateKey) {
+        currentDateKey = dateKey;
+        const header = document.createElement('div');
+        header.className = 'date-group-header';
+        header.innerHTML = `<span class="date-group-icon">📅</span> ${dateKey.charAt(0).toUpperCase() + dateKey.slice(1)}`;
+        container.appendChild(header);
+      }
+
       const card = document.createElement('div');
       card.className = `match-card ${match.closed ? 'is-closed' : ''} ${match.status === 'finished' ? 'is-finished' : ''}`;
       
