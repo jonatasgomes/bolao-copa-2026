@@ -445,6 +445,11 @@ function setupEventListeners() {
 
 // Ativa uma aba/painel — usado tanto pela toolbar quanto pelos itens do menu
 function activateTab(targetTab) {
+  // iOS: reseta a rolagem ANTES de trocar o painel, com o conteúdo atual ainda
+  // estável (resetar depois "briga" com o reflow). Para a aba Jogos não, pois
+  // ela rola até o dia de hoje.
+  if (targetTab !== 'matches-view') scrollToTop();
+
   // Marca o item ativo na toolbar e nos itens navegáveis do menu
   document.querySelectorAll('.tab-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.tab === targetTab);
@@ -477,13 +482,19 @@ function activateTab(targetTab) {
   }
 }
 
-// Reseta a rolagem para o topo de forma confiável.
-// Um único window.scrollTo costuma ser ignorado durante o reflow da troca de
-// aba (esconder um painel alto e mostrar um curto), então reforçamos no frame
-// seguinte — o que também cancela qualquer rolagem suave ainda em andamento.
+// Reseta a rolagem para o topo de forma robusta. No iOS Safari um único reset
+// é ignorado durante o reflow da troca de aba; por isso miramos em todos os
+// elementos roláveis e repetimos no frame seguinte e depois do layout assentar.
 function scrollToTop() {
-  window.scrollTo(0, 0);
-  requestAnimationFrame(() => window.scrollTo(0, 0));
+  const reset = () => {
+    window.scrollTo(0, 0);
+    if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
+    if (document.documentElement) document.documentElement.scrollTop = 0;
+    if (document.body) document.body.scrollTop = 0;
+  };
+  reset();
+  requestAnimationFrame(reset);
+  setTimeout(reset, 90);
 }
 
 // Inicializar interface do Dashboard após login com sucesso
