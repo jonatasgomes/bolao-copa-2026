@@ -160,7 +160,7 @@ app.get('/api/me', (req, res) => {
 app.get('/api/matches', requireAuth, requirePasswordChangeCheck, (req, res) => {
   try {
     // Listar todos os jogos
-    const stmtMatches = db.prepare('SELECT * FROM matches ORDER BY id ASC');
+    const stmtMatches = db.prepare('SELECT * FROM matches ORDER BY match_date ASC, id ASC');
     const matchesList = stmtMatches.all();
 
     // Listar palpites do próprio jogador logado
@@ -295,7 +295,7 @@ app.get('/api/bets/matrix', requireAuth, requirePasswordChangeCheck, (req, res) 
     const players = stmtPlayers.all().map(p => p.username);
 
     // Obter todos os jogos
-    const stmtMatches = db.prepare("SELECT id, round, home_team, away_team, match_date, status FROM matches ORDER BY id ASC");
+    const stmtMatches = db.prepare("SELECT id, round, home_team, away_team, match_date, status, home_score, away_score, penalty_winner FROM matches ORDER BY match_date ASC, id ASC");
     const matchesList = stmtMatches.all();
 
     // Obter todas as apostas dos jogadores
@@ -347,6 +347,10 @@ app.get('/api/bets/matrix', requireAuth, requirePasswordChangeCheck, (req, res) 
         home_team: match.home_team,
         away_team: match.away_team,
         closed,
+        home_score: match.home_score,
+        away_score: match.away_score,
+        penalty_winner: match.penalty_winner,
+        status: match.status,
         bets: matchBets
       };
     });

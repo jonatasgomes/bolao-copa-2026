@@ -938,10 +938,21 @@ async function loadMatrix() {
       const homeFlag = getFlag(match.home_team);
       const awayFlag = getFlag(match.away_team);
 
+      let scoreText = '';
+      if (match.status === 'finished') {
+        let penSuffix = '';
+        if (match.penalty_winner) {
+          const penWinnerName = match.penalty_winner === 'home' ? match.home_team : match.away_team;
+          penSuffix = ` (${penWinnerName})`;
+        }
+        scoreText = ` <strong style="color: var(--yellow-primary); font-size: 0.9rem; background: rgba(254,224,0,0.1); padding: 0.15rem 0.35rem; border-radius: 4px; margin-left: 0.4rem;">${match.home_score}x${match.away_score}${penSuffix}</strong>`;
+      }
+
       let cellsHtml = `
         <td style="text-align:left; font-weight:600; font-size:0.9rem; white-space:nowrap; padding: 1rem 0.8rem;">
           <span style="color:var(--yellow-primary); font-size:0.75rem; font-weight:800; background: rgba(254,224,0,0.1); padding:0.15rem 0.35rem; border-radius:4px; margin-right:0.3rem;">J${match.id}</span> 
           ${homeFlag} ${match.home_team} x ${match.away_team} ${awayFlag}
+          ${scoreText}
         </td>
       `;
 
