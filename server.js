@@ -615,8 +615,7 @@ function updateMatchScore(matchId, homeScore, awayScore, penaltyWinner) {
 
 // Configurações globais de Sincronização.
 // Fonte padrão: TheSportsDB (gratuita) — jogos encerrados da Copa (liga 4429).
-// Pode ser sobrescrita pela env SYNC_URL ou pelo painel admin. NUNCA apontar
-// para /api/public/mock-scores em produção (o mock FABRICA placares).
+// Pode ser sobrescrita pela env SYNC_URL ou pelo painel admin.
 let syncUrl = process.env.SYNC_URL || 'https://www.thesportsdb.com/api/v1/json/3/eventspastleague.php?id=4429';
 let syncHeaders = {};
 let lastSyncStatus = { time: null, success: false, message: 'Nenhuma sincronização realizada ainda.' };
@@ -990,7 +989,7 @@ function parseHtmlScrape(html, localMatches) {
 
 // Executa o processo de sincronização de placares (Suporta JSON API e HTML WebScraping)
 async function performSync() {
-  // Sem URL configurada não há o que sincronizar (evita fetch('') e o mock).
+  // Sem URL configurada não há o que sincronizar (evita fetch('')).
   if (!syncUrl || !syncUrl.trim()) {
     lastSyncStatus = {
       time: new Date().toISOString(),
@@ -1100,59 +1099,6 @@ app.post('/api/admin/matches/score', requireAuth, requireAdmin, (req, res) => {
     res.json({ message: 'Placar atualizado e pontuações recalculadas com sucesso!' });
   } catch (err) {
     res.status(400).json({ error: err.message });
-  }
-});
-
-// Endpoint público simulando placares reais do torneio com base na data do servidor
-app.get('/api/public/mock-scores', (req, res) => {
-  try {
-    const stmt = db.prepare('SELECT * FROM matches');
-    const matches = stmt.all();
-    const now = new Date();
-
-    const mockMatches = matches.map(match => {
-      // match_date é ET (UTC-4); sem o offset o servidor (UTC) erra em 4h
-      const kickoff = new Date(match.match_date.replace(' ', 'T') + ':00-04:00');
-      // Considera jogo encerrado 2 horas após o início
-      const isFinished = now.getTime() > kickoff.getTime() + 2 * 60 * 60 * 1000;
-
-      if (isFinished) {
-        // Se for o jogo 73 (África do Sul vs Canadá), o placar correto é 0 x 1 (Canadá 1 x 0)
-        let homeScore = (match.id * 3) % 4;
-        let awayScore = (match.id * 7) % 4;
-        let penaltyWinner = null;
-
-        if (match.id === 73) {
-          homeScore = 0;
-          awayScore = 1;
-        } else {
-          if (homeScore === awayScore) {
-            penaltyWinner = (match.id % 2 === 0) ? 'home' : 'away';
-          }
-        }
-
-        return {
-          id: match.id,
-          home_score: homeScore,
-          away_score: awayScore,
-          penalty_winner: penaltyWinner,
-          status: 'finished'
-        };
-      } else {
-        return {
-          id: match.id,
-          home_score: null,
-          away_score: null,
-          penalty_winner: null,
-          status: 'scheduled'
-        };
-      }
-    });
-
-    res.json(mockMatches);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Erro ao gerar placares simulados.' });
   }
 });
 
