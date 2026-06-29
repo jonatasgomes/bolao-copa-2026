@@ -613,11 +613,11 @@ function updateMatchScore(matchId, homeScore, awayScore, penaltyWinner) {
   });
 }
 
-// Configurações globais de Sincronização
-// IMPORTANTE: começa VAZIO. A sincronização automática só roda quando o admin
-// configura uma URL de placares REAL. Não apontar para /api/public/mock-scores
-// em produção — o mock fabrica placares e marcaria jogos como encerrados sozinho.
-let syncUrl = '';
+// Configurações globais de Sincronização.
+// Fonte padrão: TheSportsDB (gratuita) — jogos encerrados da Copa (liga 4429).
+// Pode ser sobrescrita pela env SYNC_URL ou pelo painel admin. NUNCA apontar
+// para /api/public/mock-scores em produção (o mock FABRICA placares).
+let syncUrl = process.env.SYNC_URL || 'https://www.thesportsdb.com/api/v1/json/3/eventspastleague.php?id=4429';
 let syncHeaders = {};
 let lastSyncStatus = { time: null, success: false, message: 'Nenhuma sincronização realizada ainda.' };
 
@@ -689,6 +689,34 @@ function parseExternalMatches(data) {
           status: item.status || 'pending'
         });
       }
+    });
+    return matches;
+  }
+
+  // TheSportsDB (events[]) — fonte padrão (gratuita). Só lança jogos REALMENTE
+  // encerrados e com vencedor definido; pula empates (pênaltis) e jogos sem
+  // placar, para nunca cravar resultado errado nem apagar um lançamento manual.
+  if (data && Array.isArray(data.events)) {
+    data.events.forEach(item => {
+      const hs = item.intHomeScore;
+      const as = item.intAwayScore;
+      const hasScores = hs !== null && hs !== undefined && hs !== '' &&
+                        as !== null && as !== undefined && as !== '';
+      const st = (item.strStatus || '').toString().toLowerCase();
+      const looksFinished = /ft|aet|pen|finish|full/.test(st) || (st === '' && hasScores);
+      if (!hasScores || !looksFinished) return;
+      const homeScore = parseInt(hs, 10);
+      const awayScore = parseInt(as, 10);
+      if (Number.isNaN(homeScore) || Number.isNaN(awayScore)) return;
+      if (homeScore === awayScore) return; // empate => pênaltis => lançamento manual
+      matches.push({
+        homeTeamName: item.strHomeTeam,
+        awayTeamName: item.strAwayTeam,
+        home_score: homeScore,
+        away_score: awayScore,
+        penalty_winner: null,
+        status: 'finished'
+      });
     });
     return matches;
   }
@@ -1189,4 +1217,10 @@ setInterval(async () => {
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
   console.log(`Acesse http://localhost:${PORT}`);
+
+  // Sincroniza uma vez no startup para já refletir jogos encerrados após cada
+  // restart (sem depender de uma partida estar ativa no momento).
+  setTimeout(() => {
+    performSync().catch(err => console.error('[Sync startup]', err.message));
+  }, 3000);
 });
