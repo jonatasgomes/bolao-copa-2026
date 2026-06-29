@@ -24,8 +24,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Helper para verificar se a partida já encerrou (bloquear palpite)
 function isMatchClosed(matchDateStr) {
-  // Converte 'YYYY-MM-DD HH:MM' para objeto Date
-  const matchDate = new Date(matchDateStr.replace(' ', 'T') + ':00');
+  // Converte 'YYYY-MM-DD HH:MM' (armazenado em ET/Eastern Time) para objeto Date
+  // EDT = UTC-4 (horário de verão, que cobre Jun-Jul da Copa)
+  const matchDate = new Date(matchDateStr.replace(' ', 'T') + ':00-04:00');
   return new Date() >= matchDate;
 }
 

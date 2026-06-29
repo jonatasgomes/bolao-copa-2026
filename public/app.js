@@ -45,11 +45,11 @@ function getFlag(teamName) {
 
 // Formatar datas para exibição legível
 function formatMatchDate(dateStr) {
-  // dateStr está em 'YYYY-MM-DD HH:MM'
-  const parts = dateStr.split(' ');
-  const dateParts = parts[0].split('-');
-  const time = parts[1];
-  return `${dateParts[2]}/${dateParts[1]} - ${time}`;
+  // dateStr está em 'YYYY-MM-DD HH:MM' no fuso ET (Eastern Time, UTC-4 no verão)
+  const date = new Date(dateStr.replace(' ', 'T') + ':00-04:00');
+  return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) +
+    ' - ' +
+    date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', hour12: false });
 }
 
 // Variáveis de Estado Global do Frontend
