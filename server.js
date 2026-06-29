@@ -118,12 +118,24 @@ app.post('/api/logout', requireAuth, (req, res) => {
 
 // Mudar Senha
 app.post('/api/change-password', requireAuth, (req, res) => {
-  const { newPassword } = req.body;
+  const { newPassword, currentPassword } = req.body;
   if (!newPassword || newPassword.trim().length < 4) {
     return res.status(400).json({ error: 'A nova senha deve ter pelo menos 4 caracteres.' });
   }
 
   try {
+    // Se NÃO é troca obrigatória (voluntária), exigir senha atual
+    if (!req.session.mustChangePassword) {
+      if (!currentPassword) {
+        return res.status(400).json({ error: 'Informe a senha atual para alterar a senha.' });
+      }
+      const stmtUser = db.prepare('SELECT password_hash, salt FROM users WHERE id = ?');
+      const user = stmtUser.get(req.session.userId);
+      if (!user || !verifyPassword(currentPassword, user.salt, user.password_hash)) {
+        return res.status(401).json({ error: 'Senha atual incorreta.' });
+      }
+    }
+
     const { hash, salt } = hashPassword(newPassword.trim());
     const stmt = db.prepare('UPDATE users SET password_hash = ?, salt = ?, must_change_password = 0 WHERE id = ?');
     stmt.run(hash, salt, req.session.userId);

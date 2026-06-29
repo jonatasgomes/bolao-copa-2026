@@ -239,6 +239,73 @@ function setupEventListeners() {
     }
   });
 
+  // Change Password Modal
+  const pwdModal = document.getElementById('change-pwd-modal');
+  const pwdForm = document.getElementById('change-pwd-modal-form');
+  const pwdError = document.getElementById('change-pwd-modal-error');
+  const pwdSuccess = document.getElementById('change-pwd-modal-success');
+
+  document.getElementById('btn-change-pwd').addEventListener('click', () => {
+    pwdForm.reset();
+    pwdError.style.display = 'none';
+    pwdSuccess.style.display = 'none';
+    pwdModal.style.display = 'flex';
+  });
+
+  document.getElementById('close-pwd-modal').addEventListener('click', () => {
+    pwdModal.style.display = 'none';
+  });
+
+  pwdModal.addEventListener('click', (e) => {
+    if (e.target === pwdModal) pwdModal.style.display = 'none';
+  });
+
+  pwdForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    pwdError.style.display = 'none';
+    pwdSuccess.style.display = 'none';
+
+    const currentPassword = document.getElementById('current-password-modal').value;
+    const newPassword = document.getElementById('new-password-modal').value;
+    const confirmPassword = document.getElementById('confirm-password-modal').value;
+
+    if (newPassword !== confirmPassword) {
+      pwdError.innerText = 'As senhas não coincidem.';
+      pwdError.style.display = 'block';
+      return;
+    }
+
+    if (newPassword.trim().length < 4) {
+      pwdError.innerText = 'A nova senha deve ter pelo menos 4 caracteres.';
+      pwdError.style.display = 'block';
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword })
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        pwdError.innerText = data.error || 'Erro ao alterar a senha.';
+        pwdError.style.display = 'block';
+        return;
+      }
+
+      pwdSuccess.innerText = 'Senha alterada com sucesso!';
+      pwdSuccess.style.display = 'block';
+      pwdForm.reset();
+      setTimeout(() => { pwdModal.style.display = 'none'; }, 1500);
+      showToast('Senha alterada com sucesso!');
+    } catch (err) {
+      pwdError.innerText = 'Erro de rede.';
+      pwdError.style.display = 'block';
+    }
+  });
+
   // Tabs de Navegação
   const tabBtns = document.querySelectorAll('.tab-btn');
   tabBtns.forEach(btn => {

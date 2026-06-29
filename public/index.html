@@ -82,6 +82,7 @@
               <div id="user-name" class="name">Nome</div>
               <div id="user-role" class="role">Jogador</div>
             </div>
+            <button id="btn-change-pwd" class="btn-change-pwd" title="Alterar Senha">🔑</button>
             <button id="btn-logout" class="btn-logout">Sair</button>
           </div>
         </div>
@@ -222,6 +223,33 @@
 
         </div>
       </section>
+
+      <!-- Modal de Alteração de Senha -->
+      <div id="change-pwd-modal" class="modal-overlay" style="display:none;">
+        <div class="modal-card">
+          <div class="modal-header">
+            <h3>🔑 Alterar Senha</h3>
+            <button id="close-pwd-modal" class="modal-close">&times;</button>
+          </div>
+          <div id="change-pwd-modal-error" class="error-message"></div>
+          <div id="change-pwd-modal-success" class="success-message" style="display:none;"></div>
+          <form id="change-pwd-modal-form">
+            <div class="form-group">
+              <label for="current-password-modal">Senha Atual</label>
+              <input type="password" id="current-password-modal" class="form-input" placeholder="Digite sua senha atual" required autocomplete="current-password">
+            </div>
+            <div class="form-group">
+              <label for="new-password-modal">Nova Senha (mín. 4 caracteres)</label>
+              <input type="password" id="new-password-modal" class="form-input" placeholder="Digite a nova senha" required autocomplete="new-password">
+            </div>
+            <div class="form-group">
+              <label for="confirm-password-modal">Confirmar Nova Senha</label>
+              <input type="password" id="confirm-password-modal" class="form-input" placeholder="Confirme a nova senha" required autocomplete="new-password">
+            </div>
+            <button type="submit" class="btn-primary">Salvar Nova Senha</button>
+          </form>
+        </div>
+      </div>
 
     </div>
 
