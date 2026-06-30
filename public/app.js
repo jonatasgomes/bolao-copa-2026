@@ -480,6 +480,8 @@ function activateTab(targetTab) {
       loadRanking();
     } else if (targetTab === 'matrix-view') {
       loadMatrix();
+    } else if (targetTab === 'bracket-view') {
+      loadBracket();
     } else if (targetTab === 'admin-view') {
       loadAdminPanel();
     }
@@ -505,7 +507,7 @@ function initializeDashboard() {
   document.getElementById('admin-tab-btn').hidden = !isAdmin;
 
   // Ativa a aba salva no localStorage ou a padrão se não houver
-  const validTabs = ['matches-view', 'ranking-view', 'matrix-view', 'regras-view', 'admin-view'];
+  const validTabs = ['matches-view', 'ranking-view', 'matrix-view', 'bracket-view', 'regras-view', 'admin-view'];
   const savedTab = localStorage.getItem('bolao_active_tab');
   let targetTab = validTabs.includes(savedTab) ? savedTab : 'matches-view';
 
@@ -1203,6 +1205,120 @@ async function loadMatrix() {
   } catch (err) {
     console.error(err);
     container.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#f87171; padding:1rem;">Erro ao carregar a grade de apostas.</td></tr>`;
+  }
+}
+
+// ==========================================
+// ABA CHAVE / CHAVEAMENTO (mata-mata visual)
+// ==========================================
+// Estrutura do mata-mata em ORDEM VISUAL: cada par de jogos alimenta o jogo do
+// round seguinte (espelha o bracketProgression do server.js).
+const BRACKET_ROUNDS = [
+  { label: '16-avos de final', games: [74, 77, 73, 75, 83, 84, 81, 82, 76, 78, 79, 80, 86, 88, 85, 87] },
+  { label: 'Oitavas de final', games: [89, 90, 93, 94, 91, 92, 95, 96] },
+  { label: 'Quartas de final', games: [97, 98, 99, 100] },
+  { label: 'Semifinais', games: [101, 102] },
+  { label: 'Final', games: [104] }
+];
+
+function isTBD(team) {
+  return !team || team.startsWith('Vencedor') || team.startsWith('Perdedor');
+}
+
+// "Hoje, 17:00" / "Amanhã, 16:00" / "Ontem" / "Dom, 28 jun" (com hora se withTime)
+function formatBracketDate(dateStr, withTime) {
+  const d = new Date(dateStr.replace(' ', 'T') + ':00-04:00');
+  const day = 86400000;
+  const toISO = (x) => x.toLocaleDateString('en-CA');
+  const now = new Date();
+  const dISO = toISO(d);
+  const time = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', hour12: false });
+  let base;
+  if (dISO === toISO(now)) base = 'Hoje';
+  else if (dISO === toISO(new Date(now.getTime() + day))) base = 'Amanhã';
+  else if (dISO === toISO(new Date(now.getTime() - day))) base = 'Ontem';
+  else {
+    const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+    const wd = cap(d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', ''));
+    const dm = d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' }).replace('.', '');
+    base = `${wd}, ${dm}`;
+  }
+  return withTime ? `${base}, ${time}` : base;
+}
+
+function renderBracketCard(m) {
+  if (!m) return '<div class="bracket-card bracket-card-empty">—</div>';
+
+  const finished = m.status === 'finished';
+  let winner = null;
+  if (finished) {
+    if (m.home_score > m.away_score) winner = 'home';
+    else if (m.away_score > m.home_score) winner = 'away';
+    else winner = m.penalty_winner; // empate decidido nos pênaltis
+  }
+
+  const statusBadge = finished
+    ? `<span class="bracket-status">${m.penalty_winner ? 'Fim (pên.)' : 'Fim'}</span>`
+    : '';
+  const dateLabel = formatBracketDate(m.match_date, !finished);
+
+  const teamRow = (team, score, side) => {
+    const tbd = isTBD(team);
+    const isWin = finished && winner === side;
+    const cls = `bracket-team${isWin ? ' is-winner' : ''}${finished && !isWin ? ' is-loser' : ''}`;
+    const icon = tbd
+      ? '<span class="bracket-flag">🛡️</span>'
+      : `<span class="bracket-flag">${getFlag(team)}</span>`;
+    const name = tbd ? 'A definir' : team;
+    const scoreHtml = finished ? `<span class="bracket-score">${score}</span>` : '';
+    const arrow = isWin ? '<span class="bracket-arrow" aria-hidden="true">◄</span>' : '';
+    return `<div class="${cls}">${icon}<span class="bracket-team-name" title="${name}">${name}</span>${scoreHtml}${arrow}</div>`;
+  };
+
+  return `
+    <div class="bracket-card">
+      <div class="bracket-card-head">
+        <span class="bracket-date">${dateLabel}</span>
+        ${statusBadge}
+      </div>
+      ${teamRow(m.home_team, m.home_score, 'home')}
+      ${teamRow(m.away_team, m.away_score, 'away')}
+    </div>
+  `;
+}
+
+async function loadBracket() {
+  const container = document.getElementById('bracket-container');
+  try {
+    const res = await fetch('/api/matches');
+    const matches = await res.json();
+    const byId = {};
+    matches.forEach(m => { byId[m.id] = m; });
+
+    container.innerHTML = '';
+    BRACKET_ROUNDS.forEach(round => {
+      const col = document.createElement('div');
+      col.className = 'bracket-round';
+
+      const title = document.createElement('div');
+      title.className = 'bracket-round-title';
+      title.innerText = round.label;
+      col.appendChild(title);
+
+      const games = document.createElement('div');
+      games.className = 'bracket-games';
+      round.games.forEach(id => {
+        const slot = document.createElement('div');
+        slot.className = 'bracket-slot';
+        slot.innerHTML = renderBracketCard(byId[id]);
+        games.appendChild(slot);
+      });
+      col.appendChild(games);
+      container.appendChild(col);
+    });
+  } catch (err) {
+    console.error(err);
+    container.innerHTML = `<div style="color:#f87171; text-align:center; padding:2rem; width:100%;">Erro ao carregar a chave.</div>`;
   }
 }
 

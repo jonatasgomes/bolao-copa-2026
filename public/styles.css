@@ -1446,6 +1446,155 @@ body {
 }
 
 /* ==========================================
+   ABA CHAVE / CHAVEAMENTO (bracket do mata-mata)
+   ========================================== */
+.bracket-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.25rem 0 1.5rem;
+}
+
+.bracket {
+  display: flex;
+  align-items: stretch;
+  width: max-content;
+}
+
+.bracket-round {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+  width: 222px;
+}
+.bracket-round + .bracket-round {
+  margin-left: 40px;
+}
+
+.bracket-round-title {
+  text-align: center;
+  font-weight: 800;
+  color: var(--yellow-primary);
+  font-size: 0.88rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0 0 0.8rem;
+}
+
+.bracket-games {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  flex: 1;
+}
+
+.bracket-slot {
+  flex: 1 0 auto;
+  min-height: 66px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding: 6px 0;
+}
+
+.bracket-card {
+  width: 100%;
+  background: var(--glass-card);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 0.55rem 0.7rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
+.bracket-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-bottom: 0.45rem;
+}
+
+.bracket-status {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.08rem 0.4rem;
+  border-radius: 5px;
+  font-weight: 700;
+  color: var(--text-light);
+  white-space: nowrap;
+}
+
+.bracket-team {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.18rem 0;
+  color: var(--text-muted);
+}
+.bracket-team.is-winner {
+  color: var(--white);
+  font-weight: 700;
+}
+.bracket-team.is-loser {
+  opacity: 0.6;
+}
+
+.bracket-flag {
+  font-size: 1.05rem;
+  width: 1.5rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+.bracket-team-name {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.88rem;
+}
+.bracket-score {
+  font-weight: 800;
+  color: var(--white);
+  min-width: 0.9rem;
+  text-align: right;
+}
+.bracket-arrow {
+  color: var(--green-light);
+  font-size: 0.6rem;
+  margin-left: 0.15rem;
+}
+
+/* Conectores: linhas em "L" ligando cada par ao jogo do round seguinte */
+.bracket-round:not(:last-child) .bracket-slot::after {
+  content: '';
+  position: absolute;
+  right: -20px;
+  width: 20px;
+  height: 50%;
+  border: 0 solid rgba(255, 255, 255, 0.16);
+}
+.bracket-round:not(:last-child) .bracket-slot:nth-child(odd)::after {
+  top: 50%;
+  border-width: 2px 2px 0 0;
+  border-top-right-radius: 8px;
+}
+.bracket-round:not(:last-child) .bracket-slot:nth-child(even)::after {
+  bottom: 50%;
+  border-width: 0 2px 2px 0;
+  border-bottom-right-radius: 8px;
+}
+.bracket-round:not(:first-child) .bracket-slot::before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: 50%;
+  width: 20px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+/* ==========================================
    DESIGN RESPONSIVO (MOBILE FIRST & RETOQUES)
    ========================================== */
 @media (max-width: 992px) {
