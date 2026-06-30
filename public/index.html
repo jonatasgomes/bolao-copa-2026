@@ -68,42 +68,15 @@
   <div id="main-app" style="display: none;">
 
     <!-- Header Unificado (marca + abas + menu) — fixo no topo -->
+    <!-- Cabeçalho estático (marca) — navegação principal fica na barra inferior -->
     <header class="app-header">
       <div class="app-header-inner">
-        <div class="header-top">
-          <div class="brand">
-            <span class="brand-emoji">🏆</span>
-            <span class="brand-text">Bolão Copa <strong>2026</strong></span>
-          </div>
-          <button id="btn-menu" class="btn-menu" aria-label="Abrir menu" aria-haspopup="true" aria-expanded="false" aria-controls="app-menu">
-            <span class="hamburger" aria-hidden="true"><span></span><span></span><span></span></span>
-          </button>
+        <div class="brand">
+          <span class="brand-emoji">🏆</span>
+          <span class="brand-text">Bolão Copa <strong>2026</strong></span>
         </div>
-
-        <!-- Toolbar: apenas as 3 abas principais -->
-        <nav class="nav-tabs">
-          <button class="tab-btn active" data-tab="matches-view">⚽ Jogos</button>
-          <button class="tab-btn" data-tab="ranking-view">🏆 Ranking</button>
-          <button class="tab-btn" data-tab="matrix-view">📊 Grade</button>
-        </nav>
-      </div>
-
-      <!-- Menu hamburguer: usuário, Regras, Admin, troca de senha e Sair -->
-      <div id="app-menu" class="app-menu" role="menu" aria-label="Menu" hidden>
-        <div class="app-menu-user">
-          <div id="user-avatar" class="user-avatar">U</div>
-          <div class="user-meta">
-            <div id="user-name" class="name">Nome</div>
-            <div id="user-role" class="role">Jogador</div>
-          </div>
-        </div>
-        <button class="menu-item" role="menuitem" data-tab="regras-view"><span class="menu-icon" aria-hidden="true">📖</span> Regras</button>
-        <button id="admin-tab-btn" class="menu-item admin-only" role="menuitem" data-tab="admin-view" hidden><span class="menu-icon" aria-hidden="true">⚙️</span> Painel Admin</button>
-        <button id="btn-change-pwd" class="menu-item" role="menuitem"><span class="menu-icon" aria-hidden="true">🔑</span> Trocar senha</button>
-        <button id="btn-logout" class="menu-item menu-item-danger" role="menuitem"><span class="menu-icon" aria-hidden="true">🚪</span> Sair</button>
       </div>
     </header>
-    <div id="menu-overlay" class="menu-overlay" hidden></div>
 
     <!-- Conteúdo das abas -->
     <main class="app-main">
@@ -326,6 +299,44 @@
         </div>
       </section>
     </main>
+
+    <!-- Menu (sheet aberto pelo botão "Mais" da barra inferior).
+         Fica FORA do header/nav (que têm backdrop-filter) para o position:fixed
+         se posicionar em relação à viewport. -->
+    <div id="app-menu" class="app-menu" role="menu" aria-label="Menu" hidden>
+      <div class="app-menu-user">
+        <div id="user-avatar" class="user-avatar">U</div>
+        <div class="user-meta">
+          <div id="user-name" class="name">Nome</div>
+          <div id="user-role" class="role">Jogador</div>
+        </div>
+      </div>
+      <button class="menu-item" role="menuitem" data-tab="regras-view"><span class="menu-icon" aria-hidden="true">📖</span> Regras</button>
+      <button id="admin-tab-btn" class="menu-item admin-only" role="menuitem" data-tab="admin-view" hidden><span class="menu-icon" aria-hidden="true">⚙️</span> Painel Admin</button>
+      <button id="btn-change-pwd" class="menu-item" role="menuitem"><span class="menu-icon" aria-hidden="true">🔑</span> Trocar senha</button>
+      <button id="btn-logout" class="menu-item menu-item-danger" role="menuitem"><span class="menu-icon" aria-hidden="true">🚪</span> Sair</button>
+    </div>
+    <div id="menu-overlay" class="menu-overlay" hidden></div>
+
+    <!-- Barra de navegação inferior (fixa) — padrão mobile -->
+    <nav class="bottom-nav" aria-label="Navegação principal">
+      <button class="tab-btn active" data-tab="matches-view">
+        <span class="nav-icon" aria-hidden="true">⚽</span>
+        <span class="nav-label">Jogos</span>
+      </button>
+      <button class="tab-btn" data-tab="ranking-view">
+        <span class="nav-icon" aria-hidden="true">🏆</span>
+        <span class="nav-label">Ranking</span>
+      </button>
+      <button class="tab-btn" data-tab="matrix-view">
+        <span class="nav-icon" aria-hidden="true">📊</span>
+        <span class="nav-label">Grade</span>
+      </button>
+      <button id="btn-menu" class="tab-btn" aria-label="Mais opções" aria-haspopup="true" aria-expanded="false" aria-controls="app-menu">
+        <span class="nav-icon" aria-hidden="true">☰</span>
+        <span class="nav-label">Mais</span>
+      </button>
+    </nav>
 
     <!-- Modal de Alteração de Senha -->
     <div id="change-pwd-modal" class="modal-overlay" style="display:none;">
