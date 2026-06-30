@@ -65,6 +65,8 @@ const toastEl = document.getElementById('toast');
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
+  // Evita que o navegador restaure uma rolagem antiga (ajuda no iOS)
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   checkAuth();
   setupEventListeners();
 });
@@ -472,13 +474,17 @@ function activateTab(targetTab) {
     // Demais abas começam do topo. Reset confiável (o header fixo, de outro
     // modo, cobre o início do conteúdo — principalmente no iOS).
     scrollToTop();
+    let loaded;
     if (targetTab === 'ranking-view') {
-      loadRanking();
+      loaded = loadRanking();
     } else if (targetTab === 'matrix-view') {
-      loadMatrix();
+      loaded = loadMatrix();
     } else if (targetTab === 'admin-view') {
-      loadAdminPanel();
+      loaded = loadAdminPanel();
     }
+    // Após o conteúdo assíncrono renderizar, reforça o topo: o Chrome no iOS
+    // desloca a rolagem quando a tabela aparece, escondendo o início atrás do header.
+    if (loaded && typeof loaded.then === 'function') loaded.then(scrollToTop);
   }
 }
 
