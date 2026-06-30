@@ -171,10 +171,16 @@ function setupEventListeners() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
       });
-      const data = await res.json();
-      
+      // A resposta pode não ser JSON (ex.: página 403/HTML de um proxy corporativo)
+      let data = {};
+      try { data = await res.json(); } catch (_) {}
+
       if (!res.ok) {
-        errorEl.innerText = data.error || 'Erro ao realizar login.';
+        let msg = data.error || 'Erro ao realizar login.';
+        if (res.status === 403) {
+          msg = 'Acesso bloqueado (403) — provavelmente um firewall/proxy da sua rede está barrando o login. Tente em outra rede (ex.: 4G/celular).';
+        }
+        errorEl.innerText = msg;
         errorEl.style.display = 'block';
         return;
       }
@@ -187,7 +193,7 @@ function setupEventListeners() {
         initializeDashboard();
       }
     } catch (err) {
-      errorEl.innerText = 'Erro ao conectar ao servidor.';
+      errorEl.innerText = 'Erro ao conectar ao servidor (rede ou bloqueio de proxy/firewall).';
       errorEl.style.display = 'block';
     }
   });

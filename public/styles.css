@@ -158,6 +158,13 @@ body {
   box-shadow: 0 0 10px rgba(254, 224, 0, 0.2);
 }
 
+/* Opções do <select> nativo: no Windows/Chrome/Brave o popup ignora o tema e
+   fica branco. Forçar fundo escuro + texto claro corrige isso. */
+.form-input option {
+  background-color: rgb(12, 38, 25);
+  color: var(--text-light);
+}
+
 .btn-primary {
   width: 100%;
   padding: 1rem;
