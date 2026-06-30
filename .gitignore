@@ -6,6 +6,9 @@ node_modules/
 *.sqlite
 *.sqlite3
 
+# Sync source config (contém a chave da API de placares — NÃO versionar)
+sync-config.json
+
 # Environment variables
 .env
 .env.local

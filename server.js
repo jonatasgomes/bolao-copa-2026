@@ -614,10 +614,18 @@ function updateMatchScore(matchId, homeScore, awayScore, penaltyWinner) {
 }
 
 // Configurações globais de Sincronização.
-// Fonte padrão: TheSportsDB (gratuita) — jogos encerrados da Copa (liga 4429).
-// Pode ser sobrescrita pela env SYNC_URL ou pelo painel admin.
+// Fonte padrão: TheSportsDB (gratuita, sem chave). Para usar a football-data.org
+// (mais completa e com pênaltis), crie um sync-config.json NÃO versionado:
+//   { "url": "https://api.football-data.org/v4/competitions/WC/matches",
+//     "headers": { "X-Auth-Token": "SUA_CHAVE" } }
 let syncUrl = process.env.SYNC_URL || 'https://www.thesportsdb.com/api/v1/json/3/eventspastleague.php?id=4429';
 let syncHeaders = {};
+try {
+  const cfg = require('./sync-config.json'); // arquivo local, fora do Git (guarda a chave)
+  if (cfg && typeof cfg.url === 'string' && cfg.url.trim()) syncUrl = cfg.url.trim();
+  if (cfg && cfg.headers && typeof cfg.headers === 'object') syncHeaders = cfg.headers;
+  console.log('[Sync] Fonte personalizada carregada de sync-config.json.');
+} catch (e) { /* sem arquivo: mantém o padrão TheSportsDB */ }
 let lastSyncStatus = { time: null, success: false, message: 'Nenhuma sincronização realizada ainda.' };
 
 // Dicionário de mapeamento e tradução de seleções para APIs externas (Inglês -> Português)
@@ -659,7 +667,12 @@ function matchTeams(localHome, localAway, remoteHome, remoteAway) {
     'sweden': 'suecia',
     'norway': 'noruega',
     'japan': 'japao',
-    'paraguay': 'paraguai'
+    'paraguay': 'paraguai',
+    'england': 'inglaterra',
+    'ghana': 'gana',
+    'cape verde islands': 'cabo verde',
+    'congo dr': 'rd congo',
+    'bosnia-herzegovina': 'bosnia e herzegovina'
   };
 
   const translate = (name) => translations[name] || name;
@@ -745,25 +758,38 @@ function parseExternalMatches(data) {
   // football-data.org
   if (data && Array.isArray(data.matches)) {
     data.matches.forEach(item => {
-      const homeName = item.homeTeam?.name;
-      const awayName = item.awayTeam?.name;
-      const isFinished = item.status === 'FINISHED';
-      
-      const homeScore = item.score?.fullTime?.home;
-      const awayScore = item.score?.fullTime?.away;
-      
-      let penaltyWinner = null;
-      if (item.score?.penalties?.home !== null && item.score?.penalties?.home !== undefined) {
-        penaltyWinner = item.score.penalties.home > item.score.penalties.away ? 'home' : 'away';
+      // Só lança jogos REALMENTE encerrados do mata-mata (nunca reseta nada).
+      if (item.status !== 'FINISHED' || item.stage === 'GROUP_STAGE') return;
+
+      const s = item.score || {};
+      let homeScore, awayScore, penaltyWinner = null;
+
+      if (s.duration === 'PENALTY_SHOOTOUT') {
+        // Placar de campo = tempo normal + prorrogação. O classificado nos
+        // pênaltis é quem tem o MAIOR fullTime (o campo "penalties" da API é
+        // pouco confiável). Sem dados suficientes, pula (lançamento manual).
+        if (!s.regularTime) return;
+        const rt = s.regularTime;
+        const et = s.extraTime || { home: 0, away: 0 };
+        homeScore = (rt.home || 0) + (et.home || 0);
+        awayScore = (rt.away || 0) + (et.away || 0);
+        const ft = s.fullTime || {};
+        if (ft.home == null || ft.away == null || ft.home === ft.away) return;
+        penaltyWinner = ft.home > ft.away ? 'home' : 'away';
+      } else {
+        // REGULAR ou EXTRA_TIME: fullTime já é o placar final de campo.
+        homeScore = s.fullTime?.home;
+        awayScore = s.fullTime?.away;
+        if (homeScore == null || awayScore == null) return;
       }
 
       matches.push({
-        homeTeamName: homeName,
-        awayTeamName: awayName,
+        homeTeamName: item.homeTeam?.name,
+        awayTeamName: item.awayTeam?.name,
         home_score: homeScore,
         away_score: awayScore,
         penalty_winner: penaltyWinner,
-        status: isFinished ? 'finished' : 'pending'
+        status: 'finished'
       });
     });
     return matches;
