@@ -25,23 +25,25 @@ Aplicação web de bolão (pool de apostas) para a Copa do Mundo FIFA 2026, foca
 
 ```
 bolao-copa-2026/
-├── server.js          # Backend Express: rotas API, sync service (TheSportsDB), scoring, bracket propagation
+├── server.js          # Backend Express: rotas API, sync service (football-data.org), scoring, bracket propagation
 ├── db.js              # Inicialização do SQLite, schema (3 tabelas), helpers de hash/senha
 ├── seed.js            # Semeadura do banco: admin + 32 jogos do mata-mata (J73–J104)
 ├── reset-match.js     # Manutenção: reverte um jogo finalizado para pendente (placar, pontos e chave)
 ├── set-score.js       # Manutenção: lança/corrige o placar oficial de um jogo via CLI
+├── clear-bets.js      # Manutenção: apaga TODAS as apostas e zera o ranking (flag --yes)
+├── sync-config.json   # Fonte+chave de sync (NÃO versionado; existe só na VPS) — ver Sincronização
 ├── package.json       # Dependências: express, express-session
-├── .gitignore         # Ignora node_modules/, *.db, .env, logs, IDE
+├── .gitignore         # Ignora node_modules/, *.db, sync-config.json, .env, logs, IDE
 ├── bolao.db           # Banco SQLite gerado em runtime (NÃO versionado)
 ├── public/
-│   ├── index.html     # SPA: login, troca de senha, header fixo unificado (3 abas + menu hamburguer)
+│   ├── index.html     # SPA: login, troca de senha, app-shell (header estático + abas + menu) e abas
 │   ├── app.js         # Toda a lógica do frontend (troca de abas, palpites, sync de UI)
 │   ├── styles.css     # CSS completo com glassmorphism, responsivo, modais
 │   └── assets/        # Imagens estáticas (banners, lendas)
 └── README.md          # Documentação do projeto
 ```
 
-> Os scripts de manutenção (`reset-match.js`, `set-score.js`) escrevem direto no SQLite — rode-os com o servidor **parado** (`pm2 stop`), pois o `node:sqlite` não aceita acesso concorrente.
+> Os scripts de manutenção (`reset-match.js`, `set-score.js`, `clear-bets.js`) escrevem direto no SQLite — rode-os com o servidor **parado** (`pm2 stop`), pois o `node:sqlite` não aceita acesso concorrente.
 
 ### Tabelas do Banco (SQLite)
 
@@ -102,13 +104,19 @@ node set-score.js <id> <golsCasa> <golsFora> [home|away]
 - **Scoring** é centralizado na função `calculatePoints()`.
 - **Propagação de chaves** usa o mapa `bracketProgression` que liga cada jogo ao próximo na chave.
 
-### Frontend (`public/app.js`)
+### Frontend (`public/app.js`, `public/styles.css`)
 - SPA-like com alternância de seções via `showSection()` e de abas via `activateTab()`.
-- Header fixo unificado: 3 abas na toolbar (Jogos, Ranking, Grade) + menu hamburguer (Regras, Painel Admin, troca de senha, sair).
+- **App-shell (NÃO mexer sem cuidado):** quando logado, `#main-app` é `display:flex` coluna ocupando 100% da altura. O `.app-header` fica no topo como item normal (`position: relative`, **sem `sticky`/`fixed`**) e quem rola é o container `.app-main` (`overflow-y:auto`). Isso existe porque `position: sticky` no header **desincronizava o hit-test no Chrome iOS** (botões travavam + gap no topo). **Não reintroduzir `position: sticky`/`fixed` no header.** O scroll em JS é feito no container `.app-main` (`scrollToTop()`, `scrollMatchesToToday()`), nunca em `window.scrollTo`.
+- Header: marca + 3 abas (Jogos, Ranking, Grade) + menu hamburguer (`#app-menu`: Regras, Painel Admin, troca de senha, sair).
 - A aba **Jogos** rola sozinha até o dia de hoje ao abrir (`scrollMatchesToToday()`).
 - Auto-refresh a cada 15s na aba ativa (lê `.view-panel.active`).
 - Rascunhos locais (`localDrafts`) preservam inputs durante refresh.
 - Bandeiras de países mapeadas via `getFlag()` (emoji unicode).
+
+### Design / estética
+- Tema **glassmorphism** verde/amarelo (Brasil). Tokens em `:root` no `styles.css`: `--green-*`, `--yellow-*`, `--blue-accent`, `--glass-bg/card/border/hover`, `--shadow-*`, `--font-main` (Outfit), `--bottom-nav-h`.
+- **Mobile-first** (≈90% dos acessos são celular). Sempre testar em largura de celular.
+- `cache-control: max-age=0` nos estáticos; `index.html` referencia `app.js?v=2`/`styles.css?v=2`. Em mudança grande de front, considere subir o `?v=`.
 
 ### Timezone
 - Datas dos jogos são armazenadas no banco como strings **ET (Eastern Time / UTC-4)**: `'YYYY-MM-DD HH:MM'`.
@@ -169,11 +177,17 @@ node set-score.js <id> <golsCasa> <golsFora> [home|away]
 
 ## Sincronização de Placares (atualização automática)
 
-- **Fonte padrão**: [TheSportsDB](https://www.thesportsdb.com) (gratuita, sem chave) — jogos encerrados da Copa (liga **4429**). Configurável pela env `SYNC_URL` ou pelo painel admin.
-- **Parser**: `parseExternalMatches()` reconhece vários formatos (TheSportsDB, API-Football, football-data.org, openfootball) e casa cada jogo pelo **nome dos times** via `matchTeams()` (traduz EN→PT e ignora a ordem mando/visitante).
+- **Fonte em produção**: [football-data.org](https://www.football-data.org) — competição `WC` (`/v4/competitions/WC/matches`). Traz **placar de pênaltis**, então até jogos decididos na disputa entram sozinhos. Requer chave (header `X-Auth-Token`).
+- **Configuração via `sync-config.json`** (na raiz, **NÃO versionado**, existe só na VPS). O `server.js` lê esse arquivo no startup e sobrescreve `syncUrl`/`syncHeaders`. Formato:
+  ```json
+  { "url": "https://api.football-data.org/v4/competitions/WC/matches",
+    "headers": { "X-Auth-Token": "SUA_CHAVE" } }
+  ```
+  Sem o arquivo, o padrão é TheSportsDB (gratuito, sem chave, porém **incompleto** e sem pênaltis). Também dá pra sobrescrever por env `SYNC_URL` ou pelo painel admin (efêmero, perde no restart).
+- **Parser**: `parseExternalMatches()` reconhece vários formatos (TheSportsDB, API-Football, football-data.org, openfootball) e casa cada jogo pelo **nome dos times** via `matchTeams()` (traduz EN→PT, cobre os 32 times, ignora ordem mando/visitante).
+  - No formato football-data, o placar do bolão = `regularTime`+`extraTime` e o classificado nos pênaltis vem do **maior `fullTime`** (o campo `penalties` da API é furado). Ignora `GROUP_STAGE`.
 - **Agendador**: roda uma vez no **startup** (catch-up) e a cada **5 min durante a janela de cada jogo** (de 15 min antes até 3,5 h após o início). Fora das janelas, só uma rotina diária às 02:00.
-- **Segurança** (lição do mock removido): só lança jogos **realmente encerrados e com vencedor definido**. **Empates (pênaltis) são pulados** — a fonte gratuita não traz o classificado da disputa — e ficam para lançamento manual (painel admin ou `set-score.js`). O sync **nunca apaga** um lançamento manual.
-- **Pênaltis automáticos**: troque `SYNC_URL` para uma fonte com placar de pênaltis (ex.: football-data.org, com a chave em `X-Auth-Token` nos headers do sync) — o parser correspondente já existe.
+- **Segurança**: só lança jogos **encerrados** do mata-mata; **nunca apaga** um lançamento manual. Se a fonte não der dados confiáveis de um jogo, ele é pulado (fica para `set-score.js` / painel admin).
 
 ---
 
@@ -185,5 +199,5 @@ node set-score.js <id> <golsCasa> <golsFora> [home|away]
 - **Sem CDN**: assets estáticos servidos diretamente pelo Express.
 - **Sem testes automatizados** no CI/CD — apenas scripts manuais.
 - **`node:sqlite` é experimental** (Node.js imprime warning no startup).
-- **Banco não versionado** (`.gitignore` exclui `*.db`) — backup manual.
-- **Pênaltis não sincronizam** automaticamente (a fonte gratuita não traz o classificado da disputa) — empates de mata-mata precisam de lançamento manual.
+- **Banco não versionado** (`.gitignore` exclui `*.db`) — backup manual (`cp bolao.db bolao.db.bak` antes de migração).
+- **Sync depende de `sync-config.json` na VPS** (fora do Git): se a VPS for recriada, recriar esse arquivo com a chave da football-data.org, senão cai no TheSportsDB (incompleto).
