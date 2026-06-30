@@ -312,9 +312,8 @@ function setupEventListeners() {
     }
   });
 
-  // Abas da barra inferior (Jogos, Ranking, Grade) — o botão "Mais" não tem
-  // data-tab e é tratado separadamente (abre o menu).
-  document.querySelectorAll('.bottom-nav .tab-btn[data-tab]').forEach(btn => {
+  // Abas da toolbar (Jogos, Ranking, Grade)
+  document.querySelectorAll('.nav-tabs .tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       activateTab(btn.dataset.tab);
       closeMenu(); // fecha o menu caso esteja aberto
@@ -453,16 +452,13 @@ function activateTab(targetTab) {
   // ela rola até o dia de hoje.
   if (targetTab !== 'matches-view') scrollToTop();
 
-  // Marca o item ativo na barra inferior e nos itens navegáveis do menu
+  // Marca o item ativo na toolbar e nos itens navegáveis do menu
   document.querySelectorAll('.tab-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.tab === targetTab);
   });
   document.querySelectorAll('.menu-item[data-tab]').forEach(b => {
     b.classList.toggle('active', b.dataset.tab === targetTab);
   });
-  // Destaca o botão "Mais" quando a aba ativa vive dentro do menu (Regras/Admin)
-  const btnMenu = document.getElementById('btn-menu');
-  if (btnMenu) btnMenu.classList.toggle('active', targetTab === 'regras-view' || targetTab === 'admin-view');
 
   // Exibe o painel correspondente
   document.querySelectorAll('.view-panel').forEach(panel => panel.classList.remove('active'));

@@ -18,7 +18,6 @@
   --shadow-main: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   --shadow-glow: 0 0 15px oklch(0.85 0.19 85 / 0.3);
   --font-main: 'Outfit', sans-serif;
-  --bottom-nav-h: 56px;
 }
 
 * {
@@ -62,8 +61,6 @@ body {
   width: 100%;
   margin: 0 auto;
   padding: 1.5rem;
-  /* Espaço para o conteúdo não ficar atrás da barra de navegação inferior fixa */
-  padding-bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom) + 1.5rem);
   flex: 1;
 }
 
@@ -193,25 +190,37 @@ body {
 /* ==========================================
    HEADER UNIFICADO (MARCA + USUÁRIO + ABAS) — FIXO NO TOPO
    ========================================== */
-/* Cabeçalho ESTÁTICO (só a marca). A navegação fica na barra inferior, então
-   o header pode rolar junto com a página — sem sticky, sem os bugs de iOS. */
 .app-header {
-  background: rgba(10, 31, 21, 0.55);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(10, 31, 21, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--glass-border);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
   padding-top: env(safe-area-inset-top);
 }
 
 .app-header-inner {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0.9rem 1.5rem;
+  padding: 0.7rem 1.5rem 0.65rem;
 }
 
-/* Marca / logo */
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+/* Marca / logo compacto */
 .brand {
   display: flex;
   align-items: center;
   gap: 0.55rem;
+  flex: 1 1 auto;
   min-width: 0;
 }
 
@@ -223,7 +232,7 @@ body {
 
 .brand-text {
   font-weight: 800;
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--white);
@@ -236,6 +245,50 @@ body {
   color: var(--yellow-primary);
   font-weight: 800;
 }
+
+/* Botão hamburguer (abre o menu) */
+.btn-menu {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  width: 44px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.25s ease;
+}
+
+.btn-menu:hover {
+  background: rgba(254, 224, 0, 0.12);
+  border-color: var(--yellow-primary);
+}
+
+.hamburger {
+  position: relative;
+  width: 20px;
+  height: 14px;
+}
+
+.hamburger span {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--yellow-primary);
+  transition: transform 0.25s ease, opacity 0.2s ease, top 0.25s ease;
+}
+
+.hamburger span:nth-child(1) { top: 0; }
+.hamburger span:nth-child(2) { top: 6px; }
+.hamburger span:nth-child(3) { top: 12px; }
+
+.btn-menu.open .hamburger span:nth-child(1) { top: 6px; transform: rotate(45deg); }
+.btn-menu.open .hamburger span:nth-child(2) { opacity: 0; }
+.btn-menu.open .hamburger span:nth-child(3) { top: 6px; transform: rotate(-45deg); }
 
 /* Avatar e dados do usuário (exibidos dentro do menu) */
 .user-avatar {
@@ -274,27 +327,25 @@ body {
 }
 
 /* Painel do menu (dropdown no canto superior direito) */
-/* Menu como "bottom sheet": sobe acima da barra inferior, ao tocar em "Mais" */
 .app-menu {
-  position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom) + 8px);
-  width: min(420px, calc(100vw - 16px));
-  background: rgba(12, 38, 25, 0.98);
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 12px;
+  width: min(264px, calc(100vw - 24px));
+  background: rgba(12, 38, 25, 0.97);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--glass-border);
-  border-radius: 16px;
-  box-shadow: 0 -10px 32px rgba(0, 0, 0, 0.5);
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
   padding: 0.5rem;
   z-index: 200;
-  animation: menuSlideUp 0.2s ease;
+  animation: menuDrop 0.18s ease;
 }
 
-@keyframes menuSlideUp {
-  from { opacity: 0; transform: translateX(-50%) translateY(12px); }
-  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+@keyframes menuDrop {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .app-menu-user {
@@ -483,70 +534,56 @@ body {
 }
 
 /* ==========================================
-   BARRA DE NAVEGAÇÃO INFERIOR (BOTTOM NAV) — padrão mobile, fixa no rodapé
+   NAVEGAÇÃO (TABS) — integradas ao header
    ========================================== */
-.bottom-nav {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 100;
+.nav-tabs {
   display: flex;
-  background: rgba(10, 31, 21, 0.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
   border-top: 1px solid var(--glass-border);
-  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
-  padding-bottom: env(safe-area-inset-bottom);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
 }
 
-.bottom-nav .tab-btn {
-  flex: 1;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  min-height: var(--bottom-nav-h);
-  padding: 0.4rem 0.25rem;
-  background: transparent;
-  border: none;
+.nav-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab-btn {
+  flex: 1 1 auto;
+  scroll-snap-align: start;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.04);
   color: var(--text-muted);
   font-family: var(--font-main);
+  font-weight: 600;
+  font-size: 0.9rem;
   cursor: pointer;
-  transition: color 0.2s ease;
+  border-radius: 10px;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
-.bottom-nav .nav-icon {
-  font-size: 1.4rem;
-  line-height: 1;
+.tab-btn:hover {
+  background: var(--glass-hover);
+  color: var(--text-light);
 }
 
-.bottom-nav .nav-label {
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.2px;
-}
-
-.bottom-nav .tab-btn:active {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.bottom-nav .tab-btn.active {
-  color: var(--yellow-primary);
-}
-
-.bottom-nav .tab-btn.active::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 30px;
-  height: 3px;
-  border-radius: 0 0 3px 3px;
-  background: var(--yellow-primary);
+.tab-btn.active {
+  background: linear-gradient(135deg, var(--green-primary), var(--green-light));
+  color: var(--white);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 10px rgba(0, 156, 59, 0.2);
 }
 
 /* ==========================================
@@ -1391,11 +1428,10 @@ body {
 @media (max-width: 992px) {
   .app-main {
     padding: 1rem;
-    padding-bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom) + 1rem);
   }
 
   .app-header-inner {
-    padding: 0.8rem 1rem;
+    padding: 0.7rem 1rem 0.65rem;
   }
 }
 
@@ -1434,6 +1470,16 @@ body {
 
   .brand-text {
     font-size: 1rem;
+  }
+
+  /* Só 3 abas: dividem a largura igualmente no celular */
+  .nav-tabs {
+    gap: 0.35rem;
+  }
+
+  .tab-btn {
+    font-size: 0.85rem;
+    padding: 0.6rem 0.4rem;
   }
 
   .matches-grid {
