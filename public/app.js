@@ -126,7 +126,7 @@ function showSection(sectionName) {
     changePasswordSection.style.display = 'flex';
     stopAutoRefresh();
   } else if (sectionName === 'app') {
-    mainApp.style.display = 'block';
+    mainApp.style.display = 'flex'; // app-shell (header + .app-main rolável)
     startAutoRefresh();
   }
 }
@@ -466,42 +466,26 @@ function activateTab(targetTab) {
   if (targetTab === 'matches-view') {
     loadMatches(true); // ao abrir, rola até o dia de hoje (já DEPOIS de renderizar)
   } else {
-    let loaded;
+    // App-shell: quem rola é o container .app-main e o header não é mais sticky,
+    // então não há o desync de hit-test do iOS. Pode rolar já, sem esperar o
+    // render (o conteúdo cresce por baixo, o scrollTop do container fica em 0).
+    scrollToTop();
     if (targetTab === 'ranking-view') {
-      loaded = loadRanking();
+      loadRanking();
     } else if (targetTab === 'matrix-view') {
-      loaded = loadMatrix();
+      loadMatrix();
     } else if (targetTab === 'admin-view') {
-      loaded = loadAdminPanel();
-    }
-    // CHAVE DA CORREÇÃO (dica da aba Regras): rolar SÓ com o layout ESTÁVEL,
-    // nunca durante o reflow. Rolar enquanto a tabela ainda está renderizando é
-    // o que desincroniza o header sticky no Chrome iOS (botões mortos + gap no
-    // topo). A aba Regras nunca bugou porque é estática: quando rola, o layout
-    // já está pronto. Copiamos isso:
-    //   - Ranking/Grade/Admin (fetch): rola DEPOIS de renderizar (loaded.then).
-    //   - Regras (estática, já no DOM): rola na hora.
-    if (loaded && typeof loaded.then === 'function') {
-      loaded.then(scrollToTop);
-    } else {
-      scrollToTop();
+      loadAdminPanel();
     }
   }
 }
 
-// Reseta a rolagem para o topo de forma robusta. No iOS Safari um único reset
-// é ignorado durante o reflow da troca de aba; por isso miramos em todos os
-// elementos roláveis e repetimos no frame seguinte e depois do layout assentar.
+// Rola a ÁREA DE CONTEÚDO (.app-main) para o topo. Como é um container com
+// overflow próprio (não a janela) e o header não é mais sticky, isso é
+// confiável no iOS — sem o desync de hit-test que travava os botões.
 function scrollToTop() {
-  const reset = () => {
-    window.scrollTo(0, 0);
-    if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
-    if (document.documentElement) document.documentElement.scrollTop = 0;
-    if (document.body) document.body.scrollTop = 0;
-  };
-  reset();
-  requestAnimationFrame(reset);
-  setTimeout(reset, 90);
+  const m = document.querySelector('.app-main');
+  if (m) m.scrollTop = 0;
 }
 
 // Inicializar interface do Dashboard após login com sucesso
@@ -746,11 +730,12 @@ function scrollMatchesToToday() {
   if (!target) target = headers[headers.length - 1];
 
   const doScroll = () => {
-    // Desconta a altura do header fixo para o dia não ficar escondido atrás dele
-    const appHeader = document.querySelector('.app-header');
-    const offset = (appHeader ? appHeader.offsetHeight : 0) + 8;
-    const y = target.getBoundingClientRect().top + window.scrollY - offset;
-    window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+    // Rola a área de conteúdo (.app-main) até o dia de hoje. O header fica FORA
+    // do container rolável, então não é preciso descontar a altura dele.
+    const m = document.querySelector('.app-main');
+    if (!m) return;
+    const delta = target.getBoundingClientRect().top - m.getBoundingClientRect().top;
+    m.scrollTo({ top: Math.max(0, m.scrollTop + delta - 8), behavior: 'smooth' });
   };
 
   // Espera fontes/layout estabilizarem para medir a posição corretamente
