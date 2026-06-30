@@ -447,11 +447,6 @@ function setupEventListeners() {
 
 // Ativa uma aba/painel — usado tanto pela toolbar quanto pelos itens do menu
 function activateTab(targetTab) {
-  // iOS: reseta a rolagem ANTES de trocar o painel, com o conteúdo atual ainda
-  // estável (resetar depois "briga" com o reflow). Para a aba Jogos não, pois
-  // ela rola até o dia de hoje.
-  if (targetTab !== 'matches-view') scrollToTop();
-
   // Marca o item ativo na toolbar e nos itens navegáveis do menu
   document.querySelectorAll('.tab-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.tab === targetTab);
@@ -469,11 +464,8 @@ function activateTab(targetTab) {
 
   // Carrega os dados específicos da aba (Regras é estática, sem fetch)
   if (targetTab === 'matches-view') {
-    loadMatches(true); // ao abrir a aba, rola até o dia de hoje
+    loadMatches(true); // ao abrir, rola até o dia de hoje (já DEPOIS de renderizar)
   } else {
-    // Demais abas começam do topo. Reset confiável (o header fixo, de outro
-    // modo, cobre o início do conteúdo — principalmente no iOS).
-    scrollToTop();
     let loaded;
     if (targetTab === 'ranking-view') {
       loaded = loadRanking();
@@ -482,9 +474,18 @@ function activateTab(targetTab) {
     } else if (targetTab === 'admin-view') {
       loaded = loadAdminPanel();
     }
-    // Após o conteúdo assíncrono renderizar, reforça o topo: o Chrome no iOS
-    // desloca a rolagem quando a tabela aparece, escondendo o início atrás do header.
-    if (loaded && typeof loaded.then === 'function') loaded.then(scrollToTop);
+    // CHAVE DA CORREÇÃO (dica da aba Regras): rolar SÓ com o layout ESTÁVEL,
+    // nunca durante o reflow. Rolar enquanto a tabela ainda está renderizando é
+    // o que desincroniza o header sticky no Chrome iOS (botões mortos + gap no
+    // topo). A aba Regras nunca bugou porque é estática: quando rola, o layout
+    // já está pronto. Copiamos isso:
+    //   - Ranking/Grade/Admin (fetch): rola DEPOIS de renderizar (loaded.then).
+    //   - Regras (estática, já no DOM): rola na hora.
+    if (loaded && typeof loaded.then === 'function') {
+      loaded.then(scrollToTop);
+    } else {
+      scrollToTop();
+    }
   }
 }
 
